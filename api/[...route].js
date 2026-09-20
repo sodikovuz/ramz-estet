@@ -12,8 +12,8 @@ const routes = {
   "giveaway": "./giveaway",
   "state": "./state",
   "watch": "./watch",
-  "public-giveaway": "./public-giveaway",
   "join": "./join",
+  "public-giveaway": "./public-giveaway",
   "current-giveaway": "./current-giveaway",
   "ably-token": "./ably-token",
   "finish-round": "./finish-round"

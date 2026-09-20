@@ -1,6 +1,0 @@
-ABLY FIX
-
-The browser was using the removed/unsupported `Ably.Realtime.Promise` constructor.
-It now uses `new Ably.Realtime(...)`, which is the supported v2 constructor.
-
-The token capability was also changed to `giveaway:*` so the browser can subscribe to giveaway:<id> channels.

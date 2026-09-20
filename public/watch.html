@@ -85,7 +85,7 @@ async function start(){
    });
    const d=await r.json(); meta={...meta,...d}; render();
    const token=(await (await fetch("/api/ably-token")).json());
-   const ably=new Ably.Realtime({authCallback:(params,cb)=>cb(null,token)});
+   const ably=new Ably.Realtime.Promise({authCallback:(params,cb)=>cb(null,token)});
    channel=ably.channels.get(`giveaway:${gid}`);
    await channel.subscribe("state",e=>{meta.state=e.data;render();});
    await channel.subscribe("viewers",e=>{document.getElementById("viewers").textContent=e.data.count;});
