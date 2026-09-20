@@ -1,36 +1,24 @@
-# RAMZ ESTET — Ably 5-Round Random Demo
+# RAMZ ESTET — Wheel + Telegram Bot
 
-Bu paketda 5 raundli realtime wheel demo bor.
+Environment variables:
+- DATABASE_URL
+- ABLY_API_KEY
+- ADMIN_SECRET
+- BOT_TOKEN
+- ADMIN_TELEGRAM_ID
+- PUBLIC_BASE_URL
 
-- Admin faqat participantlar, round soni va spin vaqtini beradi.
-- G‘olibni browser emas, server tanlaydi.
-- Har raundda tanlangan ishtirokchi keyingi raunddan chiqariladi.
-- Ably orqali viewerlar `round_start` eventini oladi.
-- Viewer animatsiyasi `startAt` server vaqtiga bog‘langan.
-- Demo ichida mukofot qiymati, to‘lov yoki Stars logikasi yo‘q.
+Neon'da `schema.sql`ni ishga tushiring.
 
-## Vercel environment variables
+Deploydan keyin webhookni bir marta oching:
+`https://YOUR-DOMAIN/api/set-webhook?secret=ADMIN_SECRET`
 
-- `DATABASE_URL`
-- `ABLY_API_KEY`
-- `ADMIN_SECRET`
+Admin botda:
+`/giveaway 5`
 
-## Neon
+Userlar inline tugma orqali qo‘shiladi. Participantlar Neon'ga saqlanadi. Admin:
+`/startwheel`
 
-`schema.sql` ni Neon SQL Editor'da ishga tushiring.
+Wheel server tomonda random tanlaydi va Ably orqali viewerlarga yuboradi.
 
-## Deploy
-
-```bash
-npm install
-vercel
-```
-
-Viewer:
-`/`
-
-Admin:
-`/admin.html`
-
-## Muhim
-Viewer spin tugagach `/api/finish-round` chaqiriladi. Shu endpoint g‘olibni DBga yozadi va keyingi raundni serverda random tanlaydi.
+`BOT_TOKEN`ni maxfiy saqlang.

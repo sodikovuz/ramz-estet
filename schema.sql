@@ -27,3 +27,17 @@ ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS target_index INTEGER;
 ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS participants JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS winners JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+CREATE TABLE IF NOT EXISTS telegram_giveaway_participants (
+  giveaway_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  username TEXT,
+  first_name TEXT,
+  joined_at TIMESTAMP DEFAULT NOW(),
+  PRIMARY KEY (giveaway_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS tg_giveaway_participants_giveaway_idx
+ON telegram_giveaway_participants(giveaway_id);
+ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS telegram_chat_id BIGINT;
+ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS telegram_message_id BIGINT;
+ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS telegram_status TEXT DEFAULT 'idle';
