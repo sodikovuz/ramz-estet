@@ -1,0 +1,10 @@
+INLINE POST FIX
+
+1) BotFather -> @BotFather -> /setinline
+2) Select @ramzestetbot
+3) Set a placeholder, e.g. "Giveaway postini tanlang..."
+4) In the bot, open a giveaway and press "📤 GURUHGA POST QILISH".
+5) Telegram opens inline mode with query giveaway:<ID>.
+6) The result is returned only when that giveaway belongs to the Telegram user who requested it.
+
+If inline mode is disabled in BotFather, Telegram will not deliver inline_query updates and no inline result can appear. This is a Telegram platform requirement, not a Vercel route issue.
