@@ -1,0 +1,28 @@
+DEPLOY FIX
+
+Sabab:
+Oldingi V5 paketda Vercel Cron `* * * * *` edi. Vercel Hobby planida
+cron precision once-per-day; minute-by-minute schedule Pro/Enterprise
+uchun. Shu sabab Hobby loyihada deploy konfiguratsiyasi muammo berishi mumkin.
+
+Bu paketda:
+- vercel.json cron registration olib tashlandi
+- barcha API / frontend fayllar saqlandi
+- /api/cron-notify fayli saqlandi
+- Node 24.x ishlatiladi
+
+Deploy:
+1. ZIP ichidagi fayllarni Vercel project root'iga yuklang.
+2. Redeploy qiling.
+3. Environment variables'ni saqlang.
+4. Deploy o'tgach webhookni qayta o'rnating:
+   /api/set-webhook?secret=ADMIN_SECRET
+
+Notification scheduler:
+- Hobby: Vercel Cron minute-by-minute ishlamaydi.
+- Pro/Enterprise: `vercel.json` ga minute cron qaytarish mumkin.
+- Hozirgi `/api/cron-notify` endpointi saqlangan; keyinchalik scheduler orqali
+  har daqiqada chaqirilsa 15m/5m/2m notificationlar ishlaydi.
+
+Agar Vercel Details oynasida boshqa aniq xato ko'rsatsa, o'sha log asosida
+qo'shimcha tuzatish kerak bo'ladi.

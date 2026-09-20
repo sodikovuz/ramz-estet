@@ -1,0 +1,14 @@
+Muhim fix:
+Inline Mode orqali yuborilgan xabar callbackda chat_id/message_id emas,
+inline_message_id bilan keladi. Shu sababli oldingi versiyada user qo‘shilgandan
+keyin count ko‘rinadigan joy yangilanmas edi.
+
+Bu versiyada:
+- user bazaga qo‘shiladi
+- '✅ Giveawayga qo‘shildingiz!' chiqadi
+- inline message matni 1, 2, 3... qilib yangilanadi
+- button ham (1), (2), (3)... bo‘ladi
+
+Deploydan keyin Vercel redeploy qiling.
+Webhookni qayta o‘rnatish shart emas, lekin qayta o‘rnatsangiz:
+https://YOUR-DOMAIN.vercel.app/api/set-webhook?secret=ADMIN_SECRET
