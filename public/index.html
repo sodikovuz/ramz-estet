@@ -147,7 +147,7 @@ async function load(){
   if(!data?.giveaway)return;
   if(deepMode==="join") setTimeout(joinGiveaway,100);
   const tok=await (await fetch("/api/ably-token")).json();
-  const ably=new Ably.Realtime.Promise({
+  const ably=new Ably.Realtime({
     authCallback:(params,cb)=>cb(null,tok)
   });
   ch=ably.channels.get(`giveaway:${data.giveaway.id}`);
