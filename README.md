@@ -31,3 +31,6 @@ Viewer:
 
 Admin:
 `/admin.html`
+
+## Muhim
+Viewer spin tugagach `/api/finish-round` chaqiriladi. Shu endpoint g‘olibni DBga yozadi va keyingi raundni serverda random tanlaydi.

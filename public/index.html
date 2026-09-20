@@ -80,11 +80,35 @@ function spin(d){
   }
   requestAnimationFrame(frame);
 }
-function finish(d){
+async function finish(d){
   animating=false;
-  winnerEl.textContent=d.winner||"";
+  const list=d.participants||[];
+  const winner=(Number.isInteger(Number(d.targetIndex)) && list[Number(d.targetIndex)]!=null)
+    ? String(list[Number(d.targetIndex)]) : "";
+  winnerEl.textContent=winner;
   roundEl.textContent=`G‘OLIB #${d.round}`;
   statusEl.className="status";statusEl.textContent="🎉 G‘olib aniqlandi";
+
+  // Server records this round and, if needed, starts the next one.
+  try{
+    const r=await fetch("/api/finish-round",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({round:Number(d.round)})
+    });
+    const result=await r.json();
+    if(r.ok){
+      if(Array.isArray(result.winners)){
+        currentWinners=result.winners;
+        renderWinners(currentWinners);
+      }
+      if(result.finished){
+        statusEl.textContent="🏆 Barcha g‘oliblar aniqlandi";
+      }
+    }
+  }catch(e){
+    console.error("finish-round:",e);
+  }
 }
 async function recover(){
   const r=await fetch("/api/state",{cache:"no-store"});if(!r.ok)return;
