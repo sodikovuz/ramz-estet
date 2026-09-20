@@ -92,3 +92,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS giveaway_state_giveaway_id_uidx ON giveaway_st
 -- Do not store Telegram/admin secrets in giveaway URLs.
 -- STARTAPP_SECRET must be a random 32+ byte secret configured in Vercel.
 -- TELEGRAM_WEBHOOK_SECRET must be configured and applied through setWebhook.
+
+CREATE TABLE IF NOT EXISTS startapp_tokens (
+  token_hash TEXT PRIMARY KEY,
+  giveaway_id BIGINT NOT NULL,
+  action TEXT NOT NULL CHECK (action IN ('join','watch')),
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS startapp_tokens_exp_idx ON startapp_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS startapp_tokens_giveaway_idx ON startapp_tokens(giveaway_id, action);
