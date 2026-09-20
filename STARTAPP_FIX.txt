@@ -1,0 +1,7 @@
+STARTAPP JOIN/WATCH FIX
+
+Direct named Mini App links can sometimes expose the startapp token through the launch URL while Telegram initDataUnsafe.start_param is not populated in the browser object.
+
+This build accepts the startapp token from the Mini App URL as well, while the server still requires valid Telegram initData and cryptographically validates the encrypted token with STARTAPP_SECRET.
+
+Deploy and make sure BOT_USERNAME=ramzestetbot, MINI_APP_SHORT_NAME=giveaway, STARTAPP_SECRET, BOT_TOKEN, ABLY_API_KEY and DATABASE_URL are set.
