@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAMZ ESTET — Boshqaruv</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070707;color:#fff;font-family:Inter,Arial,sans-serif}
+.wrap{width:min(1100px,94vw);margin:auto;padding:24px 0 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.brand{font-size:30px;font-weight:950;letter-spacing:3px}.muted{color:#888}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:18px}
+.card{background:#111;border:1px solid #fff1;border-radius:18px;padding:18px;box-shadow:0 10px 35px #0008}
+h1,h2{margin:0 0 8px}.big{font-size:34px;font-weight:950}.pill{display:inline-block;padding:7px 10px;border-radius:999px;background:#211;color:#f55;border:1px solid #522}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}.stat div{background:#0a0a0a;border:1px solid #fff1;border-radius:14px;padding:13px}.num{font-size:25px;font-weight:900}.label{color:#888;font-size:12px}
+button{border:0;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer;margin:5px 5px 0 0}.start{background:#e22;color:#fff}.close{background:#222;color:#fff}.refresh{background:#ddd;color:#111}
+.list{max-height:420px;overflow:auto}.row{padding:11px 0;border-bottom:1px solid #fff1}.time{color:#777;font-size:12px}.winner{font-weight:900}
+img.poster{width:100%;max-height:320px;object-fit:cover;border-radius:14px;margin-top:12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.stat{grid-template-columns:1fr 1fr 1fr}.top{align-items:flex-start;flex-direction:column}}
+</style></head>
+<body><div class="wrap">
+<div class="top"><div><div class="brand">RAMZ ESTET</div><div class="muted">Giveaway boshqaruv paneli</div></div><button class="refresh" onclick="load()">↻ Yangilash</button></div>
+<div id="app" class="grid"><div class="card">Yuklanmoqda...</div></div>
+<script>
+const p=new URLSearchParams(location.search),gid=p.get("gid"),token=p.get("token");
+const api=`/api/giveaway?gid=${encodeURIComponent(gid)}&token=${encodeURIComponent(token)}`;
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+async function action(a){const r=await fetch(api,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:a})});const d=await r.json();if(!r.ok)alert(d.error||"Xatolik");else load();}
+async function load(){
+ const r=await fetch(api,{cache:"no-store"});const d=await r.json();
+ if(!r.ok){document.getElementById("app").innerHTML=`<div class="card">${esc(d.error)}</div>`;return}
+ const g=d.giveaway;
+ const poster=g.image_file_id?`<div class="muted">Rasm Telegram file_id sifatida saqlangan.</div>`:"";
+ const ps=d.participants.map((x,i)=>`<div class="row">${i+1}. <b>${esc(x.username?"@"+x.username:x.first_name||x.user_id)}</b><div class="time">${new Date(x.joined_at).toLocaleString("uz-UZ")}</div></div>`).join("")||"<div class='muted'>Hali qatnashchi yo‘q.</div>";
+ const ws=d.winners.map(x=>`<div class="row"><div class="winner">🏆 #${x.round} — ${esc(x.winner_label)}</div><div class="time">${new Date(x.won_at).toLocaleString("uz-UZ")}</div></div>`).join("")||"<div class='muted'>Hali g‘olib yo‘q.</div>";
+ document.getElementById("app").innerHTML=`
+ <div class="card">
+  <div class="muted">Giveaway #${g.id}</div><h1>${esc(g.title)}</h1><p>${esc(g.description)}</p>
+  <span class="pill">${esc(g.status)}</span>
+  <div class="stat"><div><div class="num">${d.participants.length}</div><div class="label">QATNASHCHI</div></div>
+  <div><div class="num">${g.total_rounds}</div><div class="label">G‘OLIB</div></div>
+  <div><div class="num">${d.winners.length}</div><div class="label">ANIQLANGAN</div></div></div>
+  <div style="margin-top:14px">
+   ${g.status!=="finished"?`<button class="start" onclick="action('start')">▶ GIVEAWAYNI BOSHLASH</button>`:""}
+   ${g.status!=="finished"?`<button class="close" onclick="action('close')">🔒 YOPISH</button>`:""}
+  </div>
+  ${poster}
+ </div>
+ <div class="card"><h2>🏆 Natijalar</h2><div class="list">${ws}</div></div>
+ <div class="card"><h2>👥 Qatnashchilar</h2><div class="list">${ps}</div></div>
+ <div class="card"><h2>ℹ️ Ma’lumot</h2><p class="muted">Yaratilgan: ${new Date(g.created_at).toLocaleString("uz-UZ")}</p><p class="muted">Boshlangan: ${g.started_at?new Date(g.started_at).toLocaleString("uz-UZ"):"—"}</p><p class="muted">Tugagan: ${g.finished_at?new Date(g.finished_at).toLocaleString("uz-UZ"):"—"}</p></div>`;
+}
+load();
+</script></div></body></html>
