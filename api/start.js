@@ -11,22 +11,12 @@ module.exports = async function(req,res) {
     const participants = Array.isArray(body.participants)
       ? body.participants.map(x=>String(x).trim()).filter(Boolean).slice(0,500)
       : [];
-    const targets = Array.isArray(body.targets) ? body.targets.map(Number) : [];
     const totalRounds = Math.max(1, Math.min(5, Number(body.totalRounds)||5));
     const durationMs = Math.max(5000, Math.min(15000, Number(body.durationMs)||8000));
 
     if (!participants.length) return res.status(400).json({error:"Participants required"});
-    if (targets.length !== totalRounds)
-      return res.status(400).json({error:"Enter one target index for every round"});
-
-    const used = new Set();
-    for (let i=0;i<targets.length;i++) {
-      if (!Number.isInteger(targets[i]) || targets[i]<0 || targets[i]>=participants.length)
-        return res.status(400).json({error:`Invalid target index for round ${i+1}`});
-      if (used.has(targets[i]))
-        return res.status(400).json({error:`Round ${i+1}: target already used`});
-      used.add(targets[i]);
-    }
+    if (participants.length < totalRounds)
+      return res.status(400).json({error:"Participants soni roundlar sonidan kam bo'lmasin"});
 
     const sql = db();
     const old = await sql`SELECT giveaway_id FROM giveaway_state WHERE id=1`;
@@ -35,11 +25,8 @@ module.exports = async function(req,res) {
     const round = 1;
     const startAt = Date.now()+1800;
 
-    /*
-      The demo deliberately receives target indices from the admin.
-      No random prize-selection logic is hidden in the client.
-    */
-    const firstTarget = targets[0];
+    // First round is selected server-side. The browser never chooses the winner.
+    const firstIndex = Math.floor(Math.random() * participants.length);
 
     const rows = await sql`
       UPDATE giveaway_state SET
@@ -50,7 +37,7 @@ module.exports = async function(req,res) {
         spin_id=${spinId},
         start_at=${startAt},
         duration_ms=${durationMs},
-        target_index=${firstTarget},
+        target_index=${firstIndex},
         participants=${JSON.stringify(participants)}::jsonb,
         winners='[]'::jsonb,
         updated_at=NOW()
@@ -66,14 +53,14 @@ module.exports = async function(req,res) {
       spinId,
       startAt,
       durationMs,
-      targetIndex:firstTarget,
+      targetIndex:firstIndex,
       participants
     };
 
     const ably = new Ably.Rest(process.env.ABLY_API_KEY);
     await ably.channels.get("ramz-giveaway").publish("round_start", event);
 
-    res.status(200).json({ok:true,event,targets});
+    res.status(200).json({ok:true,event});
   } catch(e) {
     console.error(e);
     res.status(e.statusCode||500).json({error:e.message});
