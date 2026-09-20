@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAMZ ESTET — Admin</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070707;color:#fff;font-family:Arial,sans-serif}
+.wrap{width:min(800px,94vw);margin:auto;padding:30px 0}.card{background:#111;border:1px solid #fff1;border-radius:18px;padding:20px;margin:12px 0}
+h1{margin:0 0 5px}.muted{color:#888}label{display:block;color:#aaa;font-size:13px;margin:14px 0 6px}
+textarea,input{width:100%;padding:12px;border-radius:11px;border:1px solid #fff2;background:#080808;color:#fff}
+textarea{min-height:220px}.buttons{display:flex;gap:10px;margin-top:15px}
+button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;cursor:pointer}.start{background:#e22;color:#fff}.reset{background:#222;color:#fff}
+.msg{margin-top:12px;color:#aaa;min-height:22px}
+.note{padding:12px;border-radius:12px;background:#0b0b0b;border:1px solid #fff1;color:#aaa;line-height:1.5}
+@media(max-width:600px){.buttons{flex-direction:column}}
+</style>
+</head>
+<body><div class="wrap">
+<h1>RAMZ ESTET</h1><div class="muted">5-round realtime random demo</div>
+
+<div class="card">
+<div class="note">G‘olibni admin tanlamaydi. Har bir raundda tanlov server tomonda avtomatik tasodifiy qilinadi.</div>
+<label>Admin secret</label><input id="secret" type="password">
+<label>Participantlar — har qatorda bitta</label>
+<textarea id="participants" placeholder="@user1&#10;@user2&#10;@user3"></textarea>
+<label>G‘oliblar soni</label><input id="total" type="number" min="1" max="5" value="5">
+<label>Spin duration (ms)</label><input id="duration" type="number" min="5000" max="15000" value="8000">
+<div class="buttons">
+<button class="start" id="start">START GIVEAWAY</button>
+<button class="reset" id="reset">RESET</button>
+</div>
+<div id="msg" class="msg"></div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+$("start").onclick=async()=>{
+ const participants=$("participants").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const total=Number($("total").value);
+ if(!participants.length)return $("msg").textContent="Participant kiriting.";
+ if(participants.length<total)return $("msg").textContent="Participantlar soni roundlar sonidan kam bo‘lmasin.";
+ $("msg").textContent="Giveaway ishga tushmoqda...";
+ try{
+  const r=await fetch("/api/start",{method:"POST",headers:{"Content-Type":"application/json","x-admin-secret":$("secret").value},
+    body:JSON.stringify({participants,totalRounds:total,durationMs:Number($("duration").value)})});
+  const d=await r.json(); if(!r.ok)throw new Error(d.error||"Xatolik");
+  $("msg").textContent=`Giveaway #${d.event.giveawayId} boshlandi. Random tanlov serverda ishlaydi.`;
+ }catch(e){$("msg").textContent=e.message}
+};
+$("reset").onclick=async()=>{
+ if(!confirm("Reset?"))return;
+ const r=await fetch("/api/reset",{method:"POST",headers:{"x-admin-secret":$("secret").value}});
+ const d=await r.json();$("msg").textContent=r.ok?"Reset qilindi.":d.error||"Xatolik";
+};
+</script>
+</body></html>
