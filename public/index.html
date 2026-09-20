@@ -15,11 +15,11 @@
 .title{font-size:29px;font-weight:950;margin:17px 0 6px}.desc{color:#aaa;line-height:1.5}
 .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:14px}.stat{background:#090909;border:1px solid #fff1;border-radius:14px;padding:12px}.num{font-size:24px;font-weight:950}.lbl{font-size:11px;color:#777;margin-top:3px}
 .timer{font-size:38px;font-weight:950;text-align:center;margin:18px 0 8px}.status{text-align:center;font-weight:900}
-.wheel{height:170px;margin:18px 0;overflow:hidden;position:relative;border:1px solid #333;border-radius:18px;background:#080808}
-.pointer{position:absolute;left:50%;top:0;bottom:0;width:3px;background:#fff;z-index:5;box-shadow:0 0 15px #fff}
-.track{position:absolute;left:0;top:0;height:100%;display:flex;align-items:center;gap:10px;will-change:transform}
-.item{width:145px;flex:0 0 145px;padding:25px 8px;text-align:center;background:#151515;border:1px solid #333;border-radius:14px;font-weight:900}
-.winner{font-size:30px;font-weight:950;text-align:center;padding:14px}.mine{font-size:38px}.empty{text-align:center;padding:60px 20px;color:#999}
+.wheel{height:205px;margin:18px 0;overflow:hidden;position:relative;border:1px solid #333;border-radius:22px;background:radial-gradient(circle at 50% 50%,#1a1a1a 0,#0b0b0b 65%,#050505 100%);box-shadow:inset 0 0 35px #000,0 10px 30px #000}
+.pointer{position:absolute;left:50%;top:5px;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:22px solid #fff;z-index:10;filter:drop-shadow(0 0 8px #fff)}
+.track{position:absolute;left:0;top:0;height:100%;display:flex;align-items:center;gap:10px;will-change:transform;transition:none}
+.item{width:145px;height:130px;flex:0 0 145px;padding:20px 8px;display:flex;align-items:center;justify-content:center;text-align:center;background:linear-gradient(180deg,#1d1d1d,#101010);border:1px solid #444;border-radius:18px;font-weight:900;font-size:15px;box-shadow:inset 0 1px 0 #fff1,0 8px 20px #000}
+.winner{font-size:30px;font-weight:950;text-align:center;padding:14px;animation:pop .45s ease-out}@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}.mine{font-size:38px}.empty{text-align:center;padding:60px 20px;color:#999}
 button{width:100%;border:0;border-radius:14px;padding:14px;margin-top:10px;font-weight:950;font-size:15px;background:#fff;color:#111}
 .small{color:#777;text-align:center;font-size:12px;margin-top:12px}
 @media(max-width:500px){.stats{gap:6px}.num{font-size:20px}.title{font-size:25px}}
@@ -35,7 +35,7 @@ const tg=window.Telegram?.WebApp;
 tg?.ready();tg?.expand();
 
 let data=null, ch=null, raf=0, me=tg?.initDataUnsafe?.user||null;
-const startParam=String(tg?.initDataUnsafe?.start_param||"");
+const startParam=String(tg?.initDataUnsafe?.start_param||new URLSearchParams(location.search).get("startapp")||"");
 const startMatch=startParam.match(/^(join|watch)_(\d+)$/);
 const deepGid=startMatch?Number(startMatch[2]):0;
 const deepMode=startMatch?startMatch[1]:"";
@@ -90,32 +90,48 @@ function tick(){
 
 function build(list){
   const el=document.getElementById("track");if(!el)return;
-  el.innerHTML=[...list,...list,...list].map(x=>`<div class="item">${esc(x)}</div>`).join("");
+  el.innerHTML=[...list,...list,...list,...list].map(x=>`<div class="item">${esc(x)}</div>`).join("");
 }
 
 function updateTrack(s){
-  const list=s?.participants||[];if(!list.length)return;
+  const list=s?.participants||[];
+  const el=document.getElementById("track");
+  if(!el)return;
+  if(!list.length){el.innerHTML='<div class="item">Ishtirokchilar kutilmoqda…</div>';return;}
   build(list);
-  if(s.status==="spinning"&&s.start_at)spin(s);
+  if(s.status==="spinning" && s.start_at) spin(s);
+  else if(s.status!=="spinning"){
+    const w=155, center=(document.querySelector(".wheel")?.clientWidth||600)/2-w/2;
+    const idx=Math.max(0,Number(s.currentIndex)||0)+list.length;
+    el.style.transform=`translateX(${center-idx*w}px)`;
+  }
 }
 
 function spin(s){
   cancelAnimationFrame(raf);
-  const el=document.getElementById("track");if(!el)return;
+  const el=document.getElementById("track");
+  const list=s.participants||[];
+  if(!el||!list.length)return;
   const w=155, center=(document.querySelector(".wheel")?.clientWidth||600)/2-w/2;
-  const idx=(Number(s.target_index)||0)+listOffset(s);
-  const end=center-idx*w;
-  const start=center-Number(s.currentIndex||0)*w;
-  const startAt=Number(s.start_at),dur=Number(s.duration_ms||8000);
+  const targetIndex=Math.max(0,Number(s.target_index??s.targetIndex??0));
+  const currentIndex=Math.max(0,Number(s.currentIndex??0));
+  // The repeated track lets the drum make several full passes before landing.
+  const laps=Math.max(2,list.length>8?3:4);
+  const startIndex=currentIndex+list.length;
+  const endIndex=targetIndex+list.length*laps;
+  const start=center-startIndex*w;
+  const end=center-endIndex*w;
+  const startAt=Number(s.start_at??s.startAt??Date.now());
+  const dur=Number(s.duration_ms??s.durationMs??8000);
   function f(){
     const p=Math.max(0,Math.min(1,(Date.now()-startAt)/dur));
-    const e=1-Math.pow(1-p,3);
+    const e=1-Math.pow(1-p,4);
     el.style.transform=`translateX(${start+(end-start)*e}px)`;
     if(p<1)raf=requestAnimationFrame(f);
+    else el.style.transform=`translateX(${center-(targetIndex+list.length)*w}px)`;
   }
-  raf=requestAnimationFrame(f);
+  f();
 }
-function listOffset(s){return Math.max(0,Number((s.participants||[]).length));}
 
 function winner(w){
   const mine=me&&Number(me.id)===Number(w.userId);

@@ -1,0 +1,9 @@
+RAMZ ESTET — Telegram Mini App baraban
+
+Bu versiyada Telegram ichidagi /giveaway Mini App sahifasida ham live baraban mavjud.
+- QATNASHISH: startapp=join_GIVEAWAY_ID
+- TOMOSHA: startapp=watch_GIVEAWAY_ID
+- Ishtirokchilar Neon DB dan olinadi.
+- Spin holati Ably orqali realtime keladi.
+- Kech kirgan foydalanuvchi joriy spin holatini ko‘radi.
+- G‘olib bo‘lgan foydalanuvchining o‘z ekranida alohida animatsiya chiqadi.
