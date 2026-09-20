@@ -1,374 +1,1289 @@
 <!DOCTYPE html>
-<html lang="uz"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RAMZ ESTET — Giveaway</title>
-<style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at center,#26090e,#080506 70%);color:#fff;font-family:Arial,sans-serif;display:flex;justify-content:center}.app{width:min(900px,94%);text-align:center;padding:35px 0}.logo{font-size:clamp(45px,10vw,85px);font-weight:900;letter-spacing:8px}.estet{color:#ff3045;letter-spacing:12px;font-weight:bold}.info{margin:25px 0;color:#bbb}.wheel-box{width:min(650px,90vw);aspect-ratio:1;margin:30px auto;position:relative}canvas{width:100%;height:100%;border-radius:50%;box-shadow:0 0 0 8px #160608,0 0 0 11px #a7192c,0 0 60px rgba(255,30,50,.35);transition:transform 6s cubic-bezier(.12,.78,.18,1)}.pointer{position:absolute;z-index:5;top:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:45px solid #ff3045}.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100px;height:100px;border-radius:50%;background:#a91428;border:5px solid white;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 0 30px #ff3045}.status{font-size:20px;color:#aaa;min-height:30px}.winners{margin-top:30px}.winner{max-width:500px;margin:10px auto;padding:16px;border-radius:12px;background:#17090c;border:1px solid #65202b;display:flex;justify-content:space-between}.star{color:#ffd84d;font-weight:bold}
-</style></head><body><div class="app"><div class="logo">RAMZ</div><div class="estet">ESTET</div><div class="info">🎁 HALOL GIVEAWAY · 🏆 5 G‘OLIB · ⭐ 15 STARS</div><div class="wheel-box"><div class="pointer"></div><canvas id="wheel" width="700" height="700"></canvas><div class="center">RAMZ<br>ESTET</div></div><div class="status" id="status">Giveaway boshlanishini kuting...</div><div class="winners"><h2>🏆 G‘OLIBLAR</h2><div id="winnerList"></div></div></div>
-<script>
-const canvas = document.getElementById("wheel");
-const ctx = canvas.getContext("2d");
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-let participants = [];
-let lastSpinId = 0;
-let rotation = 0;
-let spinning = false;
+  <title>RAMZ ESTET — Giveaway</title>
 
-const colors = [
-    "#b8182d",
-    "#111111",
-    "#e52d40",
-    "#292929",
-    "#8e1020",
-    "#151515"
-];
-
-async function loadParticipants() {
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/public-participants?t=" +
-                Date.now()
-            );
-
-        const data =
-            await response.json();
-
-        participants =
-            data.participants || [];
-
-        drawWheel();
-
-    } catch (error) {
-
-        console.error(error);
-
-    }
-}
-
-
-function drawWheel() {
-
-    ctx.clearRect(
-        0,
-        0,
-        700,
-        700
-    );
-
-    if (!participants.length) {
-
-        ctx.fillStyle = "#151515";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            350,
-            350,
-            335,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        return;
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    const total =
-        participants.length;
-
-    const slice =
-        Math.PI * 2 / total;
-
-    participants.forEach(
-        (name, i) => {
-
-            const start =
-                i * slice -
-                Math.PI / 2;
-
-            const end =
-                start + slice;
-
-            ctx.beginPath();
-
-            ctx.moveTo(350, 350);
-
-            ctx.arc(
-                350,
-                350,
-                335,
-                start,
-                end
-            );
-
-            ctx.closePath();
-
-            ctx.fillStyle =
-                colors[i % colors.length];
-
-            ctx.fill();
-
-            ctx.strokeStyle =
-                "#ff5968";
-
-            ctx.lineWidth = 2;
-
-            ctx.stroke();
-
-            ctx.save();
-
-            ctx.translate(
-                350,
-                350
-            );
-
-            ctx.rotate(
-                start + slice / 2
-            );
-
-            ctx.textAlign =
-                "right";
-
-            ctx.fillStyle =
-                "#ffffff";
-
-            ctx.font =
-                "bold 14px Arial";
-
-            let text = name;
-
-            if (text.length > 18) {
-
-                text =
-                    text.substring(0, 17) +
-                    "…";
-            }
-
-            ctx.fillText(
-                text,
-                315,
-                5
-            );
-
-            ctx.restore();
-        }
-    );
-}
-
-
-/*
-    SERVERDAN SPINNI TEKSHIRADI
-*/
-
-async function checkState() {
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/state?t=" +
-                Date.now()
-            );
-
-        const data =
-            await response.json();
-
-        if (!data.state) return;
-
-        const state =
-            data.state;
-
-        renderWinners(
-            data.winners || []
-        );
-
-
-        /*
-            YANGI SPIN BOSHLANGAN
-        */
-
-        if (
-            state.status === "spinning" &&
-            state.spin_id > lastSpinId
-        ) {
-
-            lastSpinId =
-                state.spin_id;
-
-            await loadParticipants();
-
-            startViewerSpin(
-                state
-            );
-        }
-
-
-        if (
-            state.status === "finished"
-        ) {
-
-            document.getElementById(
-                "status"
-            ).textContent =
-                "🎉 GIVEAWAY YAKUNLANDI!";
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 50% 20%, #260000 0%, #0d0000 35%, #050505 70%);
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow-x: hidden;
     }
-}
 
+    .container {
+      width: min(1100px, 94%);
+      margin: auto;
+      padding: 30px 0 50px;
+      text-align: center;
+    }
 
-/*
-    VIEWERDA BARABAN AYLANADI
-*/
+    .logo {
+      font-size: clamp(32px, 7vw, 68px);
+      font-weight: 900;
+      letter-spacing: 5px;
+      margin-bottom: 8px;
+      text-shadow:
+        0 0 10px rgba(255, 0, 0, .5),
+        0 0 30px rgba(255, 0, 0, .2);
+    }
 
-function startViewerSpin(state) {
+    .subtitle {
+      color: #aaa;
+      font-size: 15px;
+      margin-bottom: 30px;
+    }
 
-    if (spinning) return;
+    .wheel-area {
+      position: relative;
+      width: min(720px, 92vw);
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 30px;
+    }
 
-    const winner =
-        state.winner;
+    #wheel {
+      width: 100%;
+      height: 100%;
+      display: block;
+
+      border-radius: 50%;
+      background: #111;
+
+      box-shadow:
+        0 0 0 8px #181818,
+        0 0 0 11px #3a0000,
+        0 0 40px rgba(255, 0, 0, .35),
+        0 0 100px rgba(255, 0, 0, .12);
+
+      transform: rotate(0deg);
+      will-change: transform;
+    }
 
     /*
-        Winner yangi winner ro‘yxatida
-        o‘chirilgani uchun viewer
-        aynan eski ro‘yxat bilan
-        hisoblaydi.
-        
-        Shuning uchun winnerIndex
-        serverdan kelgani yaxshi.
+      Markazdagi pointer.
+      Pointer yuqoriga qarab turadi.
     */
+    .pointer {
+      position: absolute;
+      z-index: 10;
+
+      top: -4px;
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      width: 0;
+      height: 0;
+
+      border-left: 22px solid transparent;
+      border-right: 22px solid transparent;
+      border-top: 0;
+      border-bottom: 48px solid #ff2020;
+
+      filter:
+        drop-shadow(0 0 8px rgba(255, 0, 0, .8))
+        drop-shadow(0 0 20px rgba(255, 0, 0, .5));
+    }
+
+    .pointer::after {
+      content: "";
+
+      position: absolute;
+      left: -8px;
+      top: 40px;
+
+      width: 16px;
+      height: 16px;
+
+      background: #fff;
+      border-radius: 50%;
+
+      box-shadow:
+        0 0 10px #fff,
+        0 0 20px rgba(255, 0, 0, .8);
+    }
+
+    .center {
+      position: absolute;
+      z-index: 5;
+
+      left: 50%;
+      top: 50%;
+
+      transform: translate(-50%, -50%);
+
+      width: 92px;
+      height: 92px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(circle, #ff2525 0%, #8b0000 55%, #260000 100%);
+
+      border: 5px solid #111;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing: 1px;
+
+      box-shadow:
+        0 0 20px rgba(255, 0, 0, .7),
+        inset 0 0 20px rgba(0, 0, 0, .5);
+    }
+
+    .status {
+      min-height: 28px;
+      margin: 10px auto 22px;
+
+      font-size: 18px;
+      font-weight: 700;
+
+      color: #ddd;
+
+      transition:
+        color .3s ease,
+        transform .3s ease;
+    }
+
+    .status.spinning {
+      color: #ff3030;
+      animation: pulse 1s infinite;
+    }
+
+    .status.finished {
+      color: #fff;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .55;
+      }
+    }
+
+    .winner-box {
+      width: min(600px, 92%);
+      margin: 0 auto 30px;
+
+      padding: 22px;
+
+      border-radius: 18px;
+
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 0, 0, .22);
+
+      backdrop-filter: blur(10px);
+
+      opacity: 0;
+      transform: translateY(10px) scale(.97);
+
+      transition:
+        opacity .4s ease,
+        transform .4s ease;
+    }
+
+    .winner-box.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .winner-label {
+      color: #888;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .winner-name {
+      color: #ff3030;
+      font-size: clamp(24px, 5vw, 42px);
+      font-weight: 900;
+
+      word-break: break-word;
+
+      text-shadow:
+        0 0 15px rgba(255, 0, 0, .45);
+    }
+
+    .prize {
+      margin-top: 8px;
+      color: #ddd;
+      font-size: 15px;
+    }
+
+    .last-winners {
+      width: min(700px, 92%);
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .last-winners h2 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+
+    #winnerList {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .winner-item {
+      padding: 14px;
+
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .07);
+
+      border-radius: 12px;
+
+      text-align: center;
+      color: #ddd;
+
+      animation: winnerAppear .35s ease;
+    }
+
+    @keyframes winnerAppear {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .connection {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+
+      display: flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 8px 12px;
+
+      border-radius: 20px;
+
+      background: rgba(0, 0, 0, .65);
+      border: 1px solid rgba(255, 255, 255, .08);
+
+      color: #aaa;
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #777;
+    }
+
+    .dot.online {
+      background: #25d366;
+      box-shadow: 0 0 8px #25d366;
+    }
+
+    .dot.offline {
+      background: #ff3030;
+      box-shadow: 0 0 8px #ff3030;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding-top: 22px;
+      }
+
+      .pointer {
+        border-left-width: 16px;
+        border-right-width: 16px;
+        border-bottom-width: 36px;
+      }
+
+      .pointer::after {
+        top: 29px;
+      }
+
+      .center {
+        width: 68px;
+        height: 68px;
+        font-size: 11px;
+      }
+
+      .status {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="logo">
+      RAMZ ESTET
+    </div>
+
+    <div class="subtitle">
+      🎁 HALOL GIVEAWAY
+    </div>
+
+    <div class="wheel-area">
+
+      <div class="pointer"></div>
+
+      <canvas id="wheel" width="900" height="900"></canvas>
+
+      <div class="center">
+        RAMZ<br />
+        ESTET
+      </div>
+
+    </div>
+
+    <div id="status" class="status">
+      Giveaway boshlanishini kuting...
+    </div>
+
+    <div id="winnerBox" class="winner-box">
+
+      <div class="winner-label">
+        🎉 G'olib
+      </div>
+
+      <div id="winnerName" class="winner-name">
+        —
+      </div>
+
+      <div class="prize">
+        ⭐ 15 Telegram Stars
+      </div>
+
+    </div>
+
+    <div class="last-winners">
+
+      <h2>
+        🏆 G'oliblar
+      </h2>
+
+      <div id="winnerList"></div>
+
+    </div>
+
+  </div>
+
+  <div class="connection">
+    <span id="connectionDot" class="dot offline"></span>
+    <span id="connectionText">Ulanmoqda...</span>
+  </div>
+
+
+<script>
+
+  const canvas = document.getElementById("wheel");
+  const ctx = canvas.getContext("2d");
+
+  const statusEl = document.getElementById("status");
+  const winnerBox = document.getElementById("winnerBox");
+  const winnerName = document.getElementById("winnerName");
+  const winnerList = document.getElementById("winnerList");
+
+  const connectionDot =
+    document.getElementById("connectionDot");
+
+  const connectionText =
+    document.getElementById("connectionText");
+
+
+  let participants = [];
+
+  let rotation = 0;
+
+  let currentSpinId = 0;
+
+  let spinning = false;
+
+  let lastState = null;
+
+  let polling = false;
+
+
+  /*
+    ==========================================
+    WHEEL DRAW
+    ==========================================
+  */
+
+  function drawWheel(list) {
+
+    if (!Array.isArray(list) || list.length === 0) {
+      drawEmptyWheel();
+      return;
+    }
+
+    const size = canvas.width;
+    const center = size / 2;
+
+    const radius = size / 2 - 8;
+
+    ctx.clearRect(0, 0, size, size);
+
+    const slice =
+      (Math.PI * 2) / list.length;
+
+
+    for (let i = 0; i < list.length; i++) {
+
+      const start =
+        i * slice - Math.PI / 2;
+
+      const end =
+        start + slice;
+
+
+      /*
+        Qora/qizil navbatma-navbat segmentlar
+      */
+
+      ctx.beginPath();
+
+      ctx.moveTo(center, center);
+
+      ctx.arc(
+        center,
+        center,
+        radius,
+        start,
+        end
+      );
+
+      ctx.closePath();
+
+      ctx.fillStyle =
+        i % 2 === 0
+          ? "#151515"
+          : "#700000";
+
+      ctx.fill();
+
+
+      ctx.strokeStyle =
+        "rgba(255,255,255,.12)";
+
+      ctx.lineWidth = 2;
+
+      ctx.stroke();
+
+
+      /*
+        Username
+      */
+
+      ctx.save();
+
+      ctx.translate(center, center);
+
+      ctx.rotate(start + slice / 2);
+
+      ctx.textAlign = "right";
+
+      ctx.textBaseline = "middle";
+
+      const fontSize =
+        list.length > 25
+          ? 17
+          : list.length > 15
+            ? 20
+            : 24;
+
+      ctx.font =
+        `900 ${fontSize}px Arial`;
+
+      ctx.fillStyle = "#fff";
+
+      let name =
+        String(list[i].username || list[i]);
+
+
+      if (name.length > 18) {
+        name =
+          name.substring(0, 17) + "…";
+      }
+
+
+      ctx.shadowColor =
+        "rgba(0,0,0,.8)";
+
+      ctx.shadowBlur = 4;
+
+
+      ctx.fillText(
+        name,
+        radius - 28,
+        0
+      );
+
+      ctx.restore();
+    }
+
+
+    /*
+      Outer ring
+    */
+
+    ctx.beginPath();
+
+    ctx.arc(
+      center,
+      center,
+      radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.strokeStyle = "#ff2020";
+
+    ctx.lineWidth = 7;
+
+    ctx.stroke();
+
+
+    /*
+      Markaz
+    */
+
+    ctx.beginPath();
+
+    ctx.arc(
+      center,
+      center,
+      55,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fillStyle = "#111";
+
+    ctx.fill();
+
+  }
+
+
+  function drawEmptyWheel() {
+
+    const size = canvas.width;
+
+    const center = size / 2;
+
+    const radius = size / 2 - 8;
+
+    ctx.clearRect(0, 0, size, size);
+
+    ctx.beginPath();
+
+    ctx.arc(
+      center,
+      center,
+      radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fillStyle = "#111";
+
+    ctx.fill();
+
+    ctx.strokeStyle = "#500000";
+
+    ctx.lineWidth = 8;
+
+    ctx.stroke();
+
+
+    ctx.fillStyle = "#777";
+
+    ctx.font = "bold 30px Arial";
+
+    ctx.textAlign = "center";
+
+    ctx.textBaseline = "middle";
+
+    ctx.fillText(
+      "KUTING...",
+      center,
+      center
+    );
+  }
+
+
+  /*
+    ==========================================
+    API
+    ==========================================
+  */
+
+  async function getParticipants() {
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/public-participants",
+          {
+            cache: "no-store"
+          }
+        );
+
+
+      if (!response.ok) {
+        throw new Error(
+          "Participants API error"
+        );
+      }
+
+
+      const data =
+        await response.json();
+
+
+      if (Array.isArray(data)) {
+
+        participants = data;
+
+      } else if (
+        Array.isArray(data.participants)
+      ) {
+
+        participants =
+          data.participants;
+
+      } else {
+
+        participants = [];
+      }
+
+
+      /*
+        Faqat spinning paytida
+        wheelni qayta chizmaymiz.
+
+        Chunki spin davomida canvas
+        o'z transformini saqlashi kerak.
+      */
+
+      if (!spinning) {
+        drawWheel(participants);
+      }
+
+
+      return true;
+
+    } catch (error) {
+
+      console.error(
+        "Participants:",
+        error
+      );
+
+      return false;
+    }
+  }
+
+
+  async function getState() {
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/state",
+          {
+            cache: "no-store"
+          }
+        );
+
+
+      if (!response.ok) {
+        throw new Error(
+          "State API error"
+        );
+      }
+
+
+      const state =
+        await response.json();
+
+
+      setConnection(true);
+
+
+      return state;
+
+    } catch (error) {
+
+      console.error(
+        "State:",
+        error
+      );
+
+      setConnection(false);
+
+      return null;
+    }
+  }
+
+
+  /*
+    ==========================================
+    CONNECTION STATUS
+    ==========================================
+  */
+
+  function setConnection(online) {
+
+    if (online) {
+
+      connectionDot.className =
+        "dot online";
+
+      connectionText.textContent =
+        "Online";
+
+    } else {
+
+      connectionDot.className =
+        "dot offline";
+
+      connectionText.textContent =
+        "Ulanish yo'q";
+    }
+  }
+
+
+  /*
+    ==========================================
+    SPIN
+    ==========================================
+  */
+
+  async function startViewerSpin(state) {
+
+    if (spinning) {
+      return;
+    }
+
+
+    /*
+      State ichidan winner index.
+    */
+
+    const winnerIndex =
+      Number(state.winner_index);
+
+
+    if (
+      !Number.isInteger(winnerIndex) ||
+      winnerIndex < 0 ||
+      winnerIndex >= participants.length
+    ) {
+
+      console.warn(
+        "Winner index participants bilan mos emas"
+      );
+
+      /*
+        Server snapshot yuborsa shu yerda
+        ishlatish mumkin.
+      */
+
+      return;
+    }
+
 
     spinning = true;
 
-    const winnerIndex =
-        state.winnerIndex;
 
-    const total =
-        participants.length + 1;
+    winnerBox.classList.remove("show");
 
-    const slice =
-        360 / total;
+
+    statusEl.className =
+      "status spinning";
+
+    statusEl.textContent =
+      "🎰 Baraban aylanmoqda...";
+
 
     /*
-        G‘olib segmentini tepaga olib kelamiz.
+      Har bir segmentning burchagi.
+    */
+
+    const total =
+      participants.length;
+
+    const slice =
+      360 / total;
+
+
+    /*
+      Winner segmentining markazi.
     */
 
     const target =
-        360 -
-        (
-            winnerIndex * slice +
-            slice / 2
-        );
+      360 -
+      (
+        winnerIndex * slice +
+        slice / 2
+      );
+
+
+    /*
+      8 marta to'liq aylanish.
+    */
 
     const extraSpins =
-        360 * 7;
+      360 * 8;
 
-    rotation +=
-        extraSpins +
-        target;
+
+    /*
+      Oldingi rotationni normalize qilamiz.
+    */
+
+    rotation =
+      rotation % 360;
+
+
+    /*
+      Muhim:
+      Agar target orqada bo'lsa,
+      oldinga aylanishni davom ettiramiz.
+    */
+
+    let delta =
+      target - rotation;
+
+
+    if (delta < 0) {
+      delta += 360;
+    }
+
+
+    const finalRotation =
+      rotation +
+      extraSpins +
+      delta;
+
+
+    /*
+      8 sekundlik professional
+      smooth easing.
+
+      Boshlanishi tez,
+      o'rtasi silliq,
+      oxiri sekinlashadi.
+    */
+
+    const duration =
+      Number(state.spin_duration) || 8000;
+
 
     canvas.style.transition =
-        `transform ${state.spin_duration}ms cubic-bezier(.12,.78,.18,1)`;
+      `transform ${duration}ms cubic-bezier(0.08, 0.72, 0.12, 1)`;
 
-    canvas.style.transform =
-        `rotate(${rotation}deg)`;
 
-    document.getElementById(
-        "status"
-    ).textContent =
-        "🎡 BARABAN AYLANMOQDA...";
+    /*
+      Browser transitionni aniq
+      ishga tushirishi uchun.
+    */
 
+    requestAnimationFrame(() => {
+
+      requestAnimationFrame(() => {
+
+        canvas.style.transform =
+          `rotate(${finalRotation}deg)`;
+
+      });
+
+    });
+
+
+    rotation =
+      finalRotation;
+
+
+    /*
+      Spin tugashini kutamiz.
+    */
 
     setTimeout(() => {
 
-        document.getElementById(
-            "status"
-        ).textContent =
-            `🏆 ${winner} — ⭐ 15 STARS`;
+      finishViewerSpin(state);
 
-        spinning = false;
+    }, duration + 150);
 
-        loadParticipants();
-
-    }, state.spin_duration + 100);
-
-}
+  }
 
 
-/*
-    G‘OLIBLAR
-*/
+  function finishViewerSpin(state) {
 
-function renderWinners(winners) {
+    spinning = false;
 
-    const list =
-        document.getElementById(
-            "winnerList"
-        );
 
-    list.innerHTML = "";
+    statusEl.className =
+      "status finished";
 
-    winners.forEach(
-        (winner, index) => {
+    statusEl.textContent =
+      "🎉 G'olib aniqlandi!";
 
-            const item =
-                document.createElement(
-                    "div"
-                );
 
-            item.className =
-                "winner";
+    winnerName.textContent =
+      state.winner || "—";
 
-            item.innerHTML = `
-                <span>
-                    🏆 ${index + 1}.
-                    ${escapeHtml(
-                        winner.username
-                    )}
-                </span>
 
-                <span class="star">
-                    ⭐ ${winner.prize}
-                </span>
-            `;
+    winnerBox.classList.add("show");
 
-            list.appendChild(item);
-        }
+
+    addWinner(
+      state.winner
     );
-}
 
 
-function escapeHtml(text) {
+    /*
+      Yangi participantlarni
+      olamiz.
 
-    const div =
-        document.createElement(
-            "div"
+      Bu winner keyingi spin uchun
+      listdan chiqarilgan bo'lsa,
+      yangi wheelni ko'rsatadi.
+    */
+
+    setTimeout(() => {
+
+      getParticipants();
+
+    }, 500);
+
+  }
+
+
+  /*
+    ==========================================
+    WINNER LIST
+    ==========================================
+  */
+
+  function addWinner(name) {
+
+    if (!name) {
+      return;
+    }
+
+
+    const existing =
+      Array.from(
+        winnerList.children
+      ).some(
+        item =>
+          item.dataset.name === String(name)
+      );
+
+
+    if (existing) {
+      return;
+    }
+
+
+    const item =
+      document.createElement("div");
+
+
+    item.className =
+      "winner-item";
+
+
+    item.dataset.name =
+      String(name);
+
+
+    item.textContent =
+      `⭐ ${name}`;
+
+
+    winnerList.prepend(item);
+
+
+    /*
+      Maksimum 5 ta winner.
+    */
+
+    while (
+      winnerList.children.length > 5
+    ) {
+
+      winnerList.lastElementChild.remove();
+
+    }
+
+  }
+
+
+  /*
+    ==========================================
+    STATE CHECK
+    ==========================================
+  */
+
+  async function checkState() {
+
+    if (polling) {
+      return;
+    }
+
+
+    polling = true;
+
+
+    try {
+
+      const state =
+        await getState();
+
+
+      if (!state) {
+        return;
+      }
+
+
+      lastState = state;
+
+
+      const spinId =
+        Number(
+          state.spin_id ||
+          state.current_spin ||
+          0
         );
 
-    div.textContent = text;
 
-    return div.innerHTML;
-}
+      /*
+        Yangi spin kelgan bo'lsa.
+      */
+
+      if (
+        state.status === "spinning" &&
+        spinId > currentSpinId &&
+        !spinning
+      ) {
+
+        currentSpinId =
+          spinId;
 
 
-/*
-    Har 500ms serverni tekshiradi.
-*/
+        /*
+          Muhim:
+          Spin boshlanishidan oldin
+          participantlarni olamiz.
+        */
 
-setInterval(
-    checkState,
-    500
-);
+        await getParticipants();
 
-loadParticipants();
 
-checkState();
+        /*
+          Agar server state kelgan paytda
+          winner allaqachon live listdan
+          chiqarilgan bo'lsa, index mos
+          kelmasligi mumkin.
 
-</script></body></html>
+          Shuning uchun snapshot bo'lsa
+          uni ishlatish mumkin.
+        */
+
+        await waitForParticipants();
+
+
+        startViewerSpin(state);
+
+      }
+
+
+      /*
+        Agar spin hali bo'lmagan bo'lsa,
+        oddiy holat.
+      */
+
+      if (
+        state.status === "ready" &&
+        !spinning
+      ) {
+
+        statusEl.className =
+          "status";
+
+        statusEl.textContent =
+          "🎁 Giveaway tayyor";
+
+
+        winnerBox.classList.remove(
+          "show"
+        );
+
+      }
+
+    } finally {
+
+      polling = false;
+
+    }
+
+  }
+
+
+  async function waitForParticipants() {
+
+    /*
+      API kechiksa biroz kutamiz.
+    */
+
+    if (participants.length > 0) {
+      return;
+    }
+
+
+    for (
+      let i = 0;
+      i < 5;
+      i++
+    ) {
+
+      await getParticipants();
+
+
+      if (participants.length > 0) {
+        return;
+      }
+
+
+      await sleep(150);
+
+    }
+
+  }
+
+
+  function sleep(ms) {
+
+    return new Promise(
+      resolve =>
+        setTimeout(resolve, ms)
+    );
+
+  }
+
+
+  /*
+    ==========================================
+    POLLING
+    ==========================================
+  */
+
+  async function loop() {
+
+    await checkState();
+
+    /*
+      500 ms polling.
+
+      WebSocket kerak emas.
+    */
+
+    setTimeout(
+      loop,
+      500
+    );
+
+  }
+
+
+  /*
+    ==========================================
+    INITIAL LOAD
+    ==========================================
+  */
+
+  async function init() {
+
+    drawEmptyWheel();
+
+
+    await getParticipants();
+
+
+    const state =
+      await getState();
+
+
+    if (state) {
+
+      lastState =
+        state;
+
+
+      currentSpinId =
+        Number(
+          state.spin_id ||
+          state.current_spin ||
+          0
+        );
+
+
+      if (state.winner) {
+
+        winnerName.textContent =
+          state.winner;
+
+      }
+
+    }
+
+
+    loop();
+
+  }
+
+
+  /*
+    ==========================================
+    START
+    ==========================================
+  */
+
+  init();
+
+</script>
+
+</body>
+</html>
