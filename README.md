@@ -47,3 +47,7 @@ Webhook `message`, `callback_query`, `inline_query`, `chosen_inline_result` upda
 
 `ADMIN_TELEGRAM_ID` Telegram username emas, numeric Telegram user ID bo‘lishi kerak.
 `BOT_TOKEN` frontendga chiqmaydi.
+
+## Security
+
+See `SECURITY_HARDENING.md`. Mini App JOIN/WATCH links now use encrypted opaque tokens, Telegram `initData` is verified server-side, Ably is scoped per giveaway, admin URLs no longer expose `ADMIN_SECRET`, and the Telegram webhook uses a secret token.

@@ -16,7 +16,8 @@ const routes = {
   "public-giveaway": "./public-giveaway",
   "current-giveaway": "./current-giveaway",
   "ably-token": "./ably-token",
-  "finish-round": "./finish-round"
+  "finish-round": "./finish-round",
+  "winner-status": "./winner-status"
 };
 
 module.exports = async function(req, res) {

@@ -1,0 +1,43 @@
+RAMZ ESTET — YANGI XAVFSIZ DEPLOY
+
+1) Vercel Environment Variables:
+BOT_TOKEN=...
+DATABASE_URL=...
+ABLY_API_KEY=...
+ADMIN_TELEGRAM_ID=...
+ADMIN_SECRET=<openssl rand -hex 32>
+STARTAPP_SECRET=<openssl rand -hex 32>
+TELEGRAM_WEBHOOK_SECRET=<openssl rand -hex 32>
+PUBLIC_BASE_URL=https://ramz-estet.vercel.app
+BOT_USERNAME=ramzestetbot
+
+ADMIN_SECRET va STARTAPP_SECRET bir xil bo‘lmasin.
+
+2) Neon schema.sql ni bir marta Run qiling. Ayniqsa:
+- giveaway_state.participant_user_ids
+- giveaway_winners.first_name
+- giveaway_state giveaway_id unique index
+
+3) Deploy qiling.
+
+4) Webhookni faqat header orqali o‘rnating:
+POST https://ramz-estet.vercel.app/api/set-webhook
+Header: x-admin-secret: ADMIN_SECRET
+
+5) Mini App:
+BotFather -> @ramzestetbot -> Mini App -> short name: giveaway
+URL: https://ramz-estet.vercel.app
+
+6) Guruh postida endi raw giveaway ID URLda bo‘lmaydi.
+JOIN va WATCH linklari v1.<encrypted-token> ko‘rinishida bo‘ladi.
+
+7) Eski linklar:
+startapp=giveaway_123
+startapp=join_123
+startapp=watch_123
+endi qabul qilinmaydi.
+
+8) Eski manage linklar:
+/manage.html?gid=123&token=ADMIN_SECRET
+endi qabul qilinmaydi.
+Yangi panel linki faqat qisqa muddatli encrypted panel token bilan ishlaydi.

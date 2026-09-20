@@ -83,3 +83,12 @@ ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAU
 CREATE TABLE IF NOT EXISTS admin_sessions(user_id BIGINT PRIMARY KEY,state TEXT NOT NULL DEFAULT 'idle',data JSONB NOT NULL DEFAULT '{}'::jsonb,updated_at TIMESTAMPTZ DEFAULT NOW());
 
 CREATE TABLE IF NOT EXISTS giveaway_notify_log(giveaway_id BIGINT NOT NULL,marker TEXT NOT NULL,sent_at TIMESTAMPTZ DEFAULT NOW(),PRIMARY KEY(giveaway_id,marker));
+
+-- Security/reliability migration for the current build.
+ALTER TABLE giveaway_state ADD COLUMN IF NOT EXISTS participant_user_ids JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE giveaway_winners ADD COLUMN IF NOT EXISTS first_name TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS giveaway_state_giveaway_id_uidx ON giveaway_state(giveaway_id) WHERE giveaway_id IS NOT NULL;
+
+-- Do not store Telegram/admin secrets in giveaway URLs.
+-- STARTAPP_SECRET must be a random 32+ byte secret configured in Vercel.
+-- TELEGRAM_WEBHOOK_SECRET must be configured and applied through setWebhook.

@@ -1,14 +1,12 @@
 MAIN MINI APP
 
-BotFather'da Giveaway Mini App short name sifatida `giveaway` qo'yiladi.
+BotFather'da Mini App short name: `giveaway`.
+URL: https://YOUR-DOMAIN.vercel.app
 
-Direct link:
-https://t.me/ramzestetbot/giveaway
+Guruhdagi va reminderdagi linklar endi:
+https://t.me/ramzestetbot/giveaway?startapp=<encrypted-token>
 
-Bu link `public/index.html` ni Mini App sifatida ochadi.
+Token ichida giveaway ID yashirin va AES-256-GCM bilan autentifikatsiyalangan.
+JOIN/WATCH faqat Telegram WebApp initData serverda tekshirilgandan keyin ishlaydi.
 
-Muhim:
-- Bu linkda giveaway ID yo'q.
-- Shu sabab page `/api/current-giveaway` orqali hozirgi faol/scheduled giveawayni oladi.
-- Agar bir vaqtning o'zida bir nechta giveaway bo'lishi kerak bo'lsa, aynan giveawayni tanitish uchun Telegram Direct Mini App `startapp` parameteridan yoki boshqa alohida link mexanizmidan foydalanish kerak.
-- Guruhdagi direct link Mini App Telegram tomonidan chat context (`chat_instance`) bilan ochilishi mumkin; bu live/group kontekstini ajratishda yordam beradi.
+Raw `join_123` yoki `watch_123` formatlari qabul qilinmaydi.
