@@ -1,11 +1,44 @@
-import { neon } from "@neondatabase/serverless";
-const sql=neon(process.env.DATABASE_URL);
-export default async function handler(req,res){
-  if(req.method!=="POST") return res.status(405).json({error:"Method not allowed"});
-  try{
-    await sql`UPDATE participants SET winner=false`;
-    await sql`DELETE FROM winners`;
-    await sql`UPDATE giveaway_state SET status='ready',current_spin=0,winner=NULL,spin_started_at=NULL WHERE id=1`;
-    res.status(200).json({success:true});
-  }catch(e){console.error(e);res.status(500).json({error:"Reset xatosi"});}
-}
+const Ably = require("ably");
+const { db } = require("./_db");
+const { requireAdmin } = require("./_auth");
+
+module.exports = async function handler(req, res) {
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "POST only" });
+    }
+
+    requireAdmin(req);
+
+    const sql = db();
+
+    const rows = await sql`
+      UPDATE giveaway_state
+      SET
+        status = 'ready',
+        start_at = NULL,
+        target_index = NULL,
+        participants = '[]'::jsonb,
+        updated_at = NOW()
+      WHERE id = 1
+      RETURNING *
+    `;
+
+    if (process.env.ABLY_API_KEY) {
+      const ably = new Ably.Rest(process.env.ABLY_API_KEY);
+      await ably.channels.get("ramz-giveaway").publish("reset", {
+        resetAt: Date.now()
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      state: rows[0]
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(err.statusCode || 500).json({
+      error: err.message || "Could not reset"
+    });
+  }
+};

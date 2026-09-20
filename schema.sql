@@ -1,24 +1,14 @@
-CREATE TABLE IF NOT EXISTS participants (
-  id SERIAL PRIMARY KEY,
-  username TEXT NOT NULL,
-  winner BOOLEAN DEFAULT FALSE
-);
-
-CREATE TABLE IF NOT EXISTS winners (
-  id SERIAL PRIMARY KEY,
-  username TEXT NOT NULL,
-  prize INTEGER DEFAULT 15,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
 CREATE TABLE IF NOT EXISTS giveaway_state (
   id INTEGER PRIMARY KEY,
-  status TEXT DEFAULT 'ready',
-  current_spin INTEGER DEFAULT 0,
-  winner TEXT,
-  spin_started_at TIMESTAMP
+  status TEXT NOT NULL DEFAULT 'ready',
+  spin_id BIGINT NOT NULL DEFAULT 0,
+  start_at BIGINT,
+  duration_ms INTEGER NOT NULL DEFAULT 8000,
+  target_index INTEGER,
+  participants JSONB NOT NULL DEFAULT '[]'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO giveaway_state (id,status,current_spin)
-VALUES (1,'ready',0)
+INSERT INTO giveaway_state (id)
+VALUES (1)
 ON CONFLICT (id) DO NOTHING;

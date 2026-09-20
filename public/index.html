@@ -1,17 +1,262 @@
-<!DOCTYPE html>
-<html lang="uz"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RAMZ ESTET — Giveaway</title>
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAMZ ESTET — Live Wheel</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at center,#26090e,#080506 70%);color:#fff;font-family:Arial,sans-serif;display:flex;justify-content:center}.app{width:min(900px,94%);text-align:center;padding:35px 0}.logo{font-size:clamp(45px,10vw,85px);font-weight:900;letter-spacing:8px}.estet{color:#ff3045;letter-spacing:12px;font-weight:bold}.info{margin:25px 0;color:#bbb}.wheel-box{width:min(650px,90vw);aspect-ratio:1;margin:30px auto;position:relative}canvas{width:100%;height:100%;border-radius:50%;box-shadow:0 0 0 8px #160608,0 0 0 11px #a7192c,0 0 60px rgba(255,30,50,.35);transition:transform 6s cubic-bezier(.12,.78,.18,1)}.pointer{position:absolute;z-index:5;top:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:45px solid #ff3045}.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100px;height:100px;border-radius:50%;background:#a91428;border:5px solid white;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 0 30px #ff3045}.status{font-size:20px;color:#aaa;min-height:30px}.winners{margin-top:30px}.winner{max-width:500px;margin:10px auto;padding:16px;border-radius:12px;background:#17090c;border:1px solid #65202b;display:flex;justify-content:space-between}.star{color:#ffd84d;font-weight:bold}
-</style></head><body><div class="app"><div class="logo">RAMZ</div><div class="estet">ESTET</div><div class="info">🎁 HALOL GIVEAWAY · 🏆 5 G‘OLIB · ⭐ 15 STARS</div><div class="wheel-box"><div class="pointer"></div><canvas id="wheel" width="700" height="700"></canvas><div class="center">RAMZ<br>ESTET</div></div><div class="status" id="status">Giveaway boshlanishini kuting...</div><div class="winners"><h2>🏆 G‘OLIBLAR</h2><div id="winnerList"></div></div></div>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,Arial,sans-serif;background:#050505;color:#fff}
+body{overflow-x:hidden;background:
+radial-gradient(circle at 50% 10%,#310000 0,#100000 32%,#050505 72%)}
+.wrap{width:min(980px,94vw);margin:auto;padding:28px 0 50px;text-align:center}
+.brand{font-size:clamp(36px,8vw,72px);font-weight:950;letter-spacing:5px;text-shadow:0 0 20px #f0000033}
+.sub{color:#999;letter-spacing:2px;font-size:13px;margin:7px 0 28px}
+.stage{position:relative;width:min(720px,92vw);aspect-ratio:1;margin:auto}
+#wheel{width:100%;height:100%;display:block;border-radius:50%;background:#111;
+border:8px solid #181818;box-shadow:0 0 0 4px #520000,0 0 55px #ff000033;
+transform:rotate(0deg);transform-origin:center;will-change:transform}
+.pointer{position:absolute;z-index:5;left:50%;top:-7px;transform:translateX(-50%);
+width:0;height:0;border-left:23px solid transparent;border-right:23px solid transparent;
+border-bottom:52px solid #ff2222;filter:drop-shadow(0 0 9px #f00)}
+.center{position:absolute;z-index:6;left:50%;top:50%;transform:translate(-50%,-50%);
+width:96px;height:96px;border-radius:50%;display:grid;place-items:center;
+background:radial-gradient(circle,#f33,#900,#250000);border:6px solid #111;
+font-weight:900;font-size:13px;box-shadow:0 0 25px #f0000066}
+.status{min-height:30px;margin:24px 0;font-weight:800;color:#aaa}
+.status.live{color:#ff3b3b;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.45}}
+.card{width:min(620px,94vw);margin:auto;padding:20px;border:1px solid #ffffff12;
+border-radius:18px;background:#ffffff06}
+.names{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;color:#aaa;font-size:13px}
+.name{padding:7px 10px;background:#ffffff08;border-radius:10px}
+.conn{position:fixed;right:12px;bottom:12px;padding:7px 11px;border-radius:18px;
+background:#000b;border:1px solid #fff1;color:#aaa;font-size:12px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#777;margin-right:6px}
+.dot.ok{background:#25d366;box-shadow:0 0 8px #25d366}
+.dot.bad{background:#f33}
+@media(max-width:600px){.center{width:70px;height:70px;font-size:10px}.pointer{border-left-width:16px;border-right-width:16px;border-bottom-width:38px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">RAMZ ESTET</div>
+  <div class="sub">LIVE GIVEAWAY WHEEL</div>
+
+  <div class="stage">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="1000" height="1000"></canvas>
+    <div class="center">RAMZ<br>ESTET</div>
+  </div>
+
+  <div id="status" class="status">Live ulanish tayyorlanmoqda...</div>
+
+  <div class="card">
+    <div id="names" class="names"></div>
+  </div>
+</div>
+
+<div class="conn">
+  <span id="dot" class="dot bad"></span>
+  <span id="connText">Ulanmoqda...</span>
+</div>
+
+<script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
 <script>
-const canvas=document.getElementById("wheel"),ctx=canvas.getContext("2d");let participants=[],lastSpin=0,rotation=0,spinning=false;
-const colors=["#b8182d","#111","#e52d40","#292929","#8e1020","#151515"];
-async function loadParticipants(){try{const r=await fetch("/api/public-participants?t="+Date.now()),d=await r.json();participants=d.participants||[];drawWheel()}catch(e){}}
-function drawWheel(){ctx.clearRect(0,0,700,700);if(!participants.length){ctx.fillStyle="#151515";ctx.beginPath();ctx.arc(350,350,335,0,Math.PI*2);ctx.fill();return}const n=participants.length,s=Math.PI*2/n;participants.forEach((name,i)=>{const a=i*s-Math.PI/2;ctx.beginPath();ctx.moveTo(350,350);ctx.arc(350,350,335,a,a+s);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle="#ff5968";ctx.stroke();ctx.save();ctx.translate(350,350);ctx.rotate(a+s/2);ctx.textAlign="right";ctx.fillStyle="#fff";ctx.font="bold 14px Arial";let t=name.length>18?name.slice(0,17)+"…":name;ctx.fillText(t,315,5);ctx.restore()})}
-function spinToWinner(username){if(spinning)return;const i=participants.indexOf(username);if(i<0)return;spinning=true;const slice=360/participants.length;rotation+=360*7+(360-(i*slice+slice/2));canvas.style.transform=`rotate(${rotation}deg)`;document.getElementById("status").textContent="🎡 BARABAN AYLANMOQDA...";setTimeout(()=>{document.getElementById("status").textContent=`🏆 G‘OLIB: ${username} — ⭐ 15 STARS`;spinning=false;loadParticipants()},6200)}
-function renderWinners(ws){const el=document.getElementById("winnerList");el.innerHTML="";ws.forEach((w,i)=>{const d=document.createElement("div");d.className="winner";d.innerHTML=`<span>🏆 ${i+1}. ${esc(w.username)}</span><span class="star">⭐ ${w.prize}</span>`;el.appendChild(d)})}
-function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML}
-async function poll(){try{const r=await fetch("/api/state?t="+Date.now()),d=await r.json();if(d.state){renderWinners(d.winners||[]);if(d.state.current_spin>lastSpin&&d.state.status==="spinning"){lastSpin=d.state.current_spin;await loadParticipants();spinToWinner(d.state.winner)}if(d.state.status==="finished")document.getElementById("status").textContent="🎉 GIVEAWAY YAKUNLANDI!"}}catch(e){}}
-loadParticipants();poll();setInterval(poll,700);
-</script></body></html>
+const canvas=document.getElementById("wheel");
+const ctx=canvas.getContext("2d");
+const statusEl=document.getElementById("status");
+const namesEl=document.getElementById("names");
+const dot=document.getElementById("dot");
+const connText=document.getElementById("connText");
+
+let rotation=0;
+let activeSpinId=0;
+let spinning=false;
+
+function setConn(ok){
+  dot.className="dot "+(ok?"ok":"bad");
+  connText.textContent=ok?"Live":"Ulanish yo‘q";
+}
+
+function drawWheel(list){
+  const n=list.length;
+  const c=500,r=488;
+  ctx.clearRect(0,0,1000,1000);
+  if(!n){
+    ctx.fillStyle="#111";ctx.beginPath();ctx.arc(c,c,r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#777";ctx.font="bold 30px Arial";ctx.textAlign="center";
+    ctx.fillText("KUTING...",c,c); return;
+  }
+
+  const slice=Math.PI*2/n;
+  for(let i=0;i<n;i++){
+    const a=-Math.PI/2+i*slice;
+    ctx.beginPath();ctx.moveTo(c,c);ctx.arc(c,c,r,a,a+slice);ctx.closePath();
+    ctx.fillStyle=i%2?"#720000":"#171717";ctx.fill();
+    ctx.strokeStyle="#ffffff18";ctx.lineWidth=2;ctx.stroke();
+
+    ctx.save();
+    ctx.translate(c,c);
+    ctx.rotate(a+slice/2);
+    ctx.textAlign="right";ctx.textBaseline="middle";
+    const fs=n>30?14:n>20?17:n>12?20:24;
+    ctx.font=`900 ${fs}px Arial`;
+    ctx.fillStyle="#fff";
+    let s=String(list[i]||"");
+    if(s.length>18)s=s.slice(0,17)+"…";
+    ctx.fillText(s,r-30,0);
+    ctx.restore();
+  }
+  ctx.beginPath();ctx.arc(c,c,r,0,Math.PI*2);
+  ctx.strokeStyle="#ff2020";ctx.lineWidth=8;ctx.stroke();
+}
+
+function showNames(list){
+  namesEl.innerHTML="";
+  for(const n of list){
+    const d=document.createElement("span");
+    d.className="name";d.textContent=n;
+    namesEl.appendChild(d);
+  }
+}
+
+function easeOutCubic(t){
+  return 1-Math.pow(1-t,3);
+}
+
+/*
+  Animation uses requestAnimationFrame instead of relying only on CSS
+  transitions. This lets a late-joining viewer calculate the exact
+  current progress from the server's startAt timestamp.
+*/
+function animateFromState(data){
+  const list=Array.isArray(data.participants)?data.participants:[];
+  const n=list.length;
+  const idx=Number(data.targetIndex);
+  const duration=Number(data.durationMs)||8000;
+  const startAt=Number(data.startAt);
+
+  if(!n || !Number.isInteger(idx) || idx<0 || idx>=n) return;
+
+  const slice=360/n;
+  const target=360-(idx*slice+slice/2);
+
+  let current=((rotation%360)+360)%360;
+  let delta=target-current;
+  if(delta<0)delta+=360;
+
+  const totalDelta=360*8+delta;
+  const baseRotation=rotation;
+  const now=Date.now();
+  const elapsed=Math.max(0,now-startAt);
+
+  spinning=true;
+  statusEl.className="status live";
+  statusEl.textContent="🎰 BARABAN AYLANMOQDA...";
+
+  function frame(){
+    const e=Date.now()-startAt;
+    const p=Math.min(1,e/duration);
+    const eased=easeOutCubic(p);
+
+    rotation=baseRotation+totalDelta*eased;
+    canvas.style.transform=`rotate(${rotation}deg)`;
+
+    if(p<1){
+      requestAnimationFrame(frame);
+    }else{
+      spinning=false;
+      rotation=baseRotation+totalDelta;
+      canvas.style.transform=`rotate(${rotation}deg)`;
+      statusEl.className="status";
+      statusEl.textContent="Spin yakunlandi";
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+async function connect(){
+  try{
+    const ably=new Ably.Realtime({
+      authCallback:async (_params,callback)=>{
+        try{
+          const r=await fetch("/api/ably-token",{cache:"no-store"});
+          if(!r.ok)throw new Error("Token error");
+          const token=await r.json();
+          callback(null,token);
+        }catch(e){callback(e,null)}
+      }
+    });
+
+    const channel=ably.channels.get("ramz-giveaway");
+
+    channel.subscribe("spin",message=>{
+      const data=message.data;
+      if(!data)return;
+
+      const spinId=Number(data.spinId||0);
+      if(spinId<=activeSpinId)return;
+
+      activeSpinId=spinId;
+
+      const list=Array.isArray(data.participants)?data.participants:[];
+      drawWheel(list);
+      showNames(list);
+
+      /*
+        If event arrives late, animateFromState starts from the
+        correct elapsed position rather than replaying the full 8s.
+      */
+      animateFromState(data);
+    });
+
+    channel.subscribe("reset",()=>{
+      spinning=false;
+      rotation=0;
+      canvas.style.transform="rotate(0deg)";
+      statusEl.className="status";
+      statusEl.textContent="Live ulanish tayyor";
+    });
+
+    ably.connection.on("connected",()=>setConn(true));
+    ably.connection.on("disconnected",()=>setConn(false));
+    ably.connection.on("suspended",()=>setConn(false));
+    ably.connection.on("failed",()=>setConn(false));
+
+    setConn(true);
+
+    /*
+      Recover state if the page opens after a spin started.
+    */
+    const r=await fetch("/api/state",{cache:"no-store"});
+    if(r.ok){
+      const s=await r.json();
+      const spinId=Number(s.spin_id||0);
+      if(s.status==="spinning" && spinId>activeSpinId){
+        activeSpinId=spinId;
+        const list=Array.isArray(s.participants)?s.participants:[];
+        drawWheel(list);showNames(list);
+        animateFromState({
+          spinId,
+          startAt:Number(s.start_at),
+          durationMs:Number(s.duration_ms),
+          targetIndex:Number(s.target_index),
+          participants:list
+        });
+      }else if(Array.isArray(s.participants)){
+        drawWheel(s.participants);showNames(s.participants);
+      }
+    }
+  }catch(e){
+    console.error(e);
+    setConn(false);
+    statusEl.textContent="Ulanishda xatolik";
+  }
+}
+
+connect();
+</script>
+</body>
+</html>

@@ -1,9 +1,118 @@
-<!DOCTYPE html>
-<html lang="uz"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RAMZ ESTET — Admin</title>
-<style>body{margin:0;background:#080506;color:#fff;font-family:Arial}.app{width:min(700px,92%);margin:auto;padding:40px 0}h1{color:#ff3045}textarea{width:100%;height:300px;background:#111;color:#fff;border:1px solid #55202a;border-radius:10px;padding:15px;box-sizing:border-box}button{width:100%;padding:16px;margin-top:12px;border:0;border-radius:10px;cursor:pointer;font-weight:bold}.load{background:#222;color:#fff}.spin{background:#e51d35;color:#fff;font-size:18px}.reset{background:#333;color:#bbb}.status{margin-top:20px;padding:15px;background:#16090c;border-radius:10px}</style></head><body><div class="app"><h1>RAMZ ESTET — ADMIN</h1><p>🏆 5 ta g‘olib · ⭐ 15 Stars</p><textarea id="participants" placeholder="@username1&#10;@username2&#10;@username3"></textarea><button class="load" onclick="uploadParticipants()">📥 ISHTIROKCHILARNI YUKLASH</button><button class="spin" onclick="spin()">🎡 BARABANNI BOSHLASH</button><button class="reset" onclick="resetGiveaway()">↻ RESET</button><div class="status" id="status">Tayyor</div></div>
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAMZ ESTET — Admin</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#070707;color:#fff;font-family:Arial,sans-serif}
+.wrap{width:min(760px,94vw);margin:auto;padding:35px 0}
+h1{margin:0 0 8px;font-size:38px}.muted{color:#888;margin-bottom:25px}
+.card{background:#111;border:1px solid #ffffff12;border-radius:18px;padding:22px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:13px;margin:0 0 7px}
+textarea,input{width:100%;background:#090909;color:#fff;border:1px solid #ffffff18;border-radius:12px;padding:13px;outline:none}
+textarea{min-height:180px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+button{border:0;border-radius:12px;padding:13px 17px;font-weight:800;cursor:pointer}
+.start{background:#e11;color:#fff}.reset{background:#222;color:#fff;border:1px solid #ffffff12}
+#msg{min-height:24px;color:#aaa;margin-top:14px}
+@media(max-width:600px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>RAMZ ESTET</h1>
+  <div class="muted">Realtime wheel admin</div>
+
+  <div class="card">
+    <label>Admin secret</label>
+    <input id="secret" type="password" placeholder="Vercel ADMIN_SECRET">
+  </div>
+
+  <div class="card">
+    <label>Participantlar — har qatorda bitta</label>
+    <textarea id="participants" placeholder="@user1&#10;@user2&#10;@user3"></textarea>
+
+    <div class="row">
+      <div>
+        <label>Target index (0 dan boshlanadi)</label>
+        <input id="target" type="number" min="0" value="0">
+      </div>
+      <div>
+        <label>Duration (ms)</label>
+        <input id="duration" type="number" min="5000" max="15000" value="8000">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <button class="start" id="start">START SPIN</button>
+    <button class="reset" id="reset">RESET</button>
+    <div id="msg"></div>
+  </div>
+</div>
+
 <script>
-async function uploadParticipants(){const text=document.getElementById("participants").value;const participants=text.split("\n").map(x=>x.trim()).filter(Boolean);if(!participants.length)return alert("Ishtirokchilarni kiriting.");const r=await fetch("/api/participants",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({participants})});const d=await r.json();document.getElementById("status").textContent=`✅ ${d.count} ta ishtirokchi yuklandi`}
-async function spin(){const r=await fetch("/api/spin",{method:"POST"}),d=await r.json();if(!r.ok)return alert(d.error);document.getElementById("status").textContent=`🎡 ${d.spin}-spin boshlandi: ${d.winner}`;setTimeout(finishSpin,6500)}
-async function finishSpin(){await fetch("/api/finish",{method:"POST"})}
-async function resetGiveaway(){if(!confirm("Giveawayni reset qilamizmi?"))return;await fetch("/api/reset",{method:"POST"});document.getElementById("status").textContent="↻ Giveaway reset qilindi"}
-</script></body></html>
+const $=id=>document.getElementById(id);
+
+function names(){
+  return $("participants").value
+    .split(/\r?\n/)
+    .map(x=>x.trim())
+    .filter(Boolean);
+}
+
+$("start").onclick=async()=>{
+  const list=names();
+  const target=Number($("target").value);
+  const duration=Number($("duration").value);
+
+  if(!list.length)return $("msg").textContent="Participant kiriting.";
+  if(!Number.isInteger(target)||target<0||target>=list.length)
+    return $("msg").textContent="Target index noto‘g‘ri.";
+
+  $("msg").textContent="Spin yuborilmoqda...";
+
+  try{
+    const r=await fetch("/api/start",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-admin-secret":$("secret").value
+      },
+      body:JSON.stringify({
+        participants:list,
+        targetIndex:target,
+        durationMs:duration
+      })
+    });
+
+    const data=await r.json();
+
+    if(!r.ok)throw new Error(data.error||"Xatolik");
+
+    $("msg").textContent=
+      `Spin #${data.state.spin_id} yuborildi.`;
+
+  }catch(e){
+    $("msg").textContent=e.message;
+  }
+};
+
+$("reset").onclick=async()=>{
+  if(!confirm("Reset qilinsinmi?"))return;
+
+  try{
+    const r=await fetch("/api/reset",{
+      method:"POST",
+      headers:{"x-admin-secret":$("secret").value}
+    });
+    const data=await r.json();
+    $("msg").textContent=r.ok?"Reset qilindi.":(data.error||"Xatolik");
+  }catch(e){
+    $("msg").textContent=e.message;
+  }
+};
+</script>
+</body>
+</html>

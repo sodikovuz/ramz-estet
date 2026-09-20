@@ -1,8 +1,12 @@
 {
-  "name": "ramz-giveaway",
+  "name": "ramz-ably-realtime-demo",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "dev": "vercel dev"
+  },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.0"
+    "@neondatabase/serverless": "^1.0.1",
+    "ably": "^2.10.0"
   }
 }
