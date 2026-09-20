@@ -17,9 +17,24 @@ const tg=window.Telegram?.WebApp;tg?.ready();tg?.expand();
 const canvas=document.createElement('canvas');canvas.width=1000;canvas.height=1000;canvas.className='wheel';const ctx=canvas.getContext('2d');
 const app=document.getElementById('app'),info=document.getElementById('info'),dot=document.getElementById('dot'),connText=document.getElementById('connText');
 let data=null,rotation=0,activeSpinId=0,raf=0,me=tg?.initDataUnsafe?.user||null,channel=null,joined=false;
-const initData=tg?.initData||'';
-const qs=new URLSearchParams(location.search);
-const startParam=tg?.initDataUnsafe?.start_param || tg?.initDataUnsafe?.startParam || qs.get('startapp') || qs.get('tgWebAppStartParam') || '';
+function readTelegramContext(){
+  const qs=new URLSearchParams(location.search);
+  let init=tg?.initData||'';
+  let start=tg?.initDataUnsafe?.start_param || tg?.initDataUnsafe?.startParam || qs.get('startapp') || qs.get('tgWebAppStartParam') || '';
+  // Telegram may expose WebApp data in the URL hash in some clients.
+  if(!init || !start){
+    const hash=(location.hash||'').replace(/^#/,'');
+    const hp=new URLSearchParams(hash);
+    if(!init) init=hp.get('tgWebAppData') || hp.get('initData') || '';
+    if(!start) start=hp.get('tgWebAppStartParam') || hp.get('startapp') || '';
+  }
+  // If tgWebAppData is present as a query/hash field, decode it before sending.
+  try{ if(init && init.includes('%3D')) init=decodeURIComponent(init); }catch{}
+  return {initData:init,startParam:start};
+}
+const ctx=readTelegramContext();
+const initData=ctx.initData;
+const startParam=ctx.startParam;
 if(startParam){ try{ history.replaceState(null,'',location.pathname); }catch{} }
 function authHeaders(){return {'content-type':'application/json','x-telegram-init-data':initData}}
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
