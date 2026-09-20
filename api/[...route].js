@@ -13,6 +13,8 @@ const routes = {
   "state": "./state",
   "watch": "./watch",
   "public-giveaway": "./public-giveaway",
+  "join": "./join",
+  "current-giveaway": "./current-giveaway",
   "ably-token": "./ably-token",
   "finish-round": "./finish-round"
 };

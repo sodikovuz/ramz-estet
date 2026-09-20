@@ -1,0 +1,14 @@
+MAIN MINI APP
+
+BotFather'da Giveaway Mini App short name sifatida `giveaway` qo'yiladi.
+
+Direct link:
+https://t.me/ramzestetbot/giveaway
+
+Bu link `public/index.html` ni Mini App sifatida ochadi.
+
+Muhim:
+- Bu linkda giveaway ID yo'q.
+- Shu sabab page `/api/current-giveaway` orqali hozirgi faol/scheduled giveawayni oladi.
+- Agar bir vaqtning o'zida bir nechta giveaway bo'lishi kerak bo'lsa, aynan giveawayni tanitish uchun Telegram Direct Mini App `startapp` parameteridan yoki boshqa alohida link mexanizmidan foydalanish kerak.
+- Guruhdagi direct link Mini App Telegram tomonidan chat context (`chat_instance`) bilan ochilishi mumkin; bu live/group kontekstini ajratishda yordam beradi.

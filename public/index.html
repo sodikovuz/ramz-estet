@@ -1,138 +1,166 @@
 <!doctype html>
 <html lang="uz">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>RAMZ ESTET — Giveaway</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 8%,#3a0000,#110000 35%,#040404 75%);color:#fff;font-family:Arial,sans-serif;min-height:100vh}
-.wrap{width:min(1050px,94vw);margin:auto;padding:25px 0 55px;text-align:center}.brand{font-size:clamp(35px,8vw,70px);font-weight:950;letter-spacing:5px;text-shadow:0 0 28px #f003}
-.sub{color:#999;letter-spacing:2px;margin:5px 0 20px}
-.hero{min-height:145px;display:flex;align-items:center;justify-content:center;flex-direction:column}
-.round{font-size:18px;color:#aaa;letter-spacing:2px}.winner{font-size:clamp(38px,9vw,80px);font-weight:950;color:#ff2424;text-shadow:0 0 30px #f006;word-break:break-word;animation:pop .45s ease}
-@keyframes pop{from{opacity:0;transform:scale(.65)}to{opacity:1;transform:scale(1)}}
-.stage{position:relative;width:min(700px,92vw);aspect-ratio:1;margin:5px auto 22px}
-#wheel{width:100%;height:100%;border-radius:50%;border:8px solid #181818;background:#111;box-shadow:0 0 0 4px #580000,0 0 65px #f003;transform-origin:center;will-change:transform}
-.pointer{position:absolute;z-index:5;left:50%;top:-7px;transform:translateX(-50%);width:0;height:0;border-left:23px solid transparent;border-right:23px solid transparent;border-bottom:52px solid #f22;filter:drop-shadow(0 0 10px red)}
-.center{position:absolute;z-index:6;left:50%;top:50%;transform:translate(-50%,-50%);width:95px;height:95px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#f33,#900,#250000);border:6px solid #111;font-size:13px;font-weight:900;box-shadow:0 0 25px #f007}
-.status{min-height:27px;color:#aaa;font-weight:800}.status.spin{color:#ff3333;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.4}}
-.history{width:min(700px,94vw);margin:20px auto}.history h2{margin:0 0 13px}.list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-.item{padding:15px;border:1px solid #fff1;border-radius:14px;background:#ffffff08}.num{color:#777;font-size:12px}.user{font-weight:900;color:#fff;margin-top:4px}
-.conn{position:fixed;right:12px;bottom:12px;padding:7px 11px;background:#000c;border:1px solid #fff1;border-radius:20px;color:#aaa;font-size:12px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f33;margin-right:6px}.dot.ok{background:#2d6;box-shadow:0 0 8px #2d6}
-@media(max-width:600px){.center{width:70px;height:70px;font-size:10px}.pointer{border-left-width:16px;border-right-width:16px;border-bottom-width:38px}}
+*{box-sizing:border-box}body{margin:0;background:#060606;color:#fff;font-family:Inter,Arial,sans-serif}
+.wrap{width:min(760px,94vw);margin:auto;padding:18px 0 40px}.top{text-align:center}
+.logo{font-weight:950;letter-spacing:4px;font-size:27px}.sub{color:#888;margin-top:5px}
+.card{margin-top:15px;background:#101010;border:1px solid #fff1;border-radius:22px;padding:18px;box-shadow:0 14px 45px #000}
+.poster{width:100%;border-radius:17px;display:block;max-height:320px;object-fit:cover}
+.title{font-size:29px;font-weight:950;margin:17px 0 6px}.desc{color:#aaa;line-height:1.5}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:14px}.stat{background:#090909;border:1px solid #fff1;border-radius:14px;padding:12px}.num{font-size:24px;font-weight:950}.lbl{font-size:11px;color:#777;margin-top:3px}
+.timer{font-size:38px;font-weight:950;text-align:center;margin:18px 0 8px}.status{text-align:center;font-weight:900}
+.wheel{height:170px;margin:18px 0;overflow:hidden;position:relative;border:1px solid #333;border-radius:18px;background:#080808}
+.pointer{position:absolute;left:50%;top:0;bottom:0;width:3px;background:#fff;z-index:5;box-shadow:0 0 15px #fff}
+.track{position:absolute;left:0;top:0;height:100%;display:flex;align-items:center;gap:10px;will-change:transform}
+.item{width:145px;flex:0 0 145px;padding:25px 8px;text-align:center;background:#151515;border:1px solid #333;border-radius:14px;font-weight:900}
+.winner{font-size:30px;font-weight:950;text-align:center;padding:14px}.mine{font-size:38px}.empty{text-align:center;padding:60px 20px;color:#999}
+button{width:100%;border:0;border-radius:14px;padding:14px;margin-top:10px;font-weight:950;font-size:15px;background:#fff;color:#111}
+.small{color:#777;text-align:center;font-size:12px;margin-top:12px}
+@media(max-width:500px){.stats{gap:6px}.num{font-size:20px}.title{font-size:25px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="brand">RAMZ ESTET</div>
-  <div class="sub">HALOL GIVEAWAY • LIVE</div>
-  <div class="hero">
-    <div id="round" class="round">G‘OLIBLAR ANIQLANMOQDA</div>
-    <div id="winner" class="winner"></div>
-  </div>
-  <div class="stage">
-    <div class="pointer"></div>
-    <canvas id="wheel" width="1000" height="1000"></canvas>
-    <div class="center">RAMZ<br>ESTET</div>
-  </div>
-  <div id="status" class="status">Live ulanish...</div>
-  <section class="history"><h2>🏆 G‘OLIBLAR</h2><div id="list" class="list"></div></section>
+<div class="top"><div class="logo">RAMZ ESTET</div><div class="sub">HALOL GIVEAWAY • LIVE</div></div>
+<div id="app"><div class="card empty">Giveaway yuklanmoqda...</div></div>
 </div>
-<div class="conn"><span id="dot" class="dot"></span><span id="ct">Ulanmoqda...</span></div>
-<script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
 <script>
-const c=document.getElementById("wheel"),x=c.getContext("2d");
-const roundEl=document.getElementById("round"),winnerEl=document.getElementById("winner"),statusEl=document.getElementById("status"),listEl=document.getElementById("list"),dot=document.getElementById("dot"),ct=document.getElementById("ct");
-let rotation=0,activeSpin=0,animating=false,currentWinners=[];
+const tg=window.Telegram?.WebApp;
+tg?.ready();tg?.expand();
 
-function draw(list){
-  const n=list.length,C=500,R=488;x.clearRect(0,0,1000,1000);
-  if(!n){x.fillStyle="#111";x.beginPath();x.arc(C,C,R,0,7);x.fill();return}
-  const sl=2*Math.PI/n;
-  for(let i=0;i<n;i++){
-    const a=-Math.PI/2+i*sl;
-    x.beginPath();x.moveTo(C,C);x.arc(C,C,R,a,a+sl);x.closePath();x.fillStyle=i%2?"#700000":"#171717";x.fill();x.strokeStyle="#fff2";x.stroke();
-    x.save();x.translate(C,C);x.rotate(a+sl/2);x.textAlign="right";x.textBaseline="middle";x.font=`900 ${n>25?14:n>15?18:23}px Arial`;x.fillStyle="#fff";
-    let s=String(list[i]);if(s.length>18)s=s.slice(0,17)+"…";x.fillText(s,R-28,0);x.restore();
-  }
-  x.beginPath();x.arc(C,C,R,0,7);x.strokeStyle="#f22";x.lineWidth=8;x.stroke();
-}
-function renderWinners(ws){
-  listEl.innerHTML="";
-  (ws||[]).forEach(w=>{const d=document.createElement("div");d.className="item";d.innerHTML=`<div class="num">G‘OLIB #${w.round}</div><div class="user">${escapeHtml(w.winner)}</div>`;listEl.appendChild(d)});
-}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function ease(t){return 1-Math.pow(1-t,3)}
-function spin(d){
-  if(animating)return;
-  const list=d.participants||[],n=list.length,idx=Number(d.targetIndex);
-  if(!n||idx<0||idx>=n)return;
-  draw(list);
-  const slice=360/n,target=360-(idx*slice+slice/2);
-  let cur=((rotation%360)+360)%360,delta=target-cur;if(delta<0)delta+=360;
-  const total=360*8+delta,base=rotation,start=Number(d.startAt),dur=Number(d.durationMs)||8000;
-  animating=true;statusEl.className="status spin";statusEl.textContent="🎰 BARABAN AYLANMOQDA...";
-  roundEl.textContent=`G‘OLIB #${d.round}`;
-  winnerEl.textContent="";
-  function frame(){
-    const p=Math.min(1,Math.max(0,(Date.now()-start)/dur));
-    rotation=base+total*ease(p);c.style.transform=`rotate(${rotation}deg)`;
-    if(p<1)requestAnimationFrame(frame);else finish(d);
-  }
-  requestAnimationFrame(frame);
-}
-async function finish(d){
-  animating=false;
-  const list=d.participants||[];
-  const winner=(Number.isInteger(Number(d.targetIndex)) && list[Number(d.targetIndex)]!=null)
-    ? String(list[Number(d.targetIndex)]) : "";
-  winnerEl.textContent=winner;
-  roundEl.textContent=`G‘OLIB #${d.round}`;
-  statusEl.className="status";statusEl.textContent="🎉 G‘olib aniqlandi";
+let data=null, ch=null, raf=0, me=tg?.initDataUnsafe?.user||null;
+const startParam=String(tg?.initDataUnsafe?.start_param||"");
+const startMatch=startParam.match(/^(join|watch)_(\d+)$/);
+const deepGid=startMatch?Number(startMatch[2]):0;
+const deepMode=startMatch?startMatch[1]:"";
 
-  // Server records this round and, if needed, starts the next one.
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+function fmt(ms){
+  ms=Math.max(0,ms);
+  const s=Math.floor(ms/1000),m=Math.floor(s/60),x=s%60;
+  return `${String(m).padStart(2,"0")}:${String(x).padStart(2,"0")}`;
+}
+
+function draw(){
+  const a=document.getElementById("app");
+  if(!data?.giveaway){
+    a.innerHTML=`<div class="card empty"><div style="font-size:45px">🎁</div><h2>Hozir faol giveaway yo‘q</h2><div>Yangi giveaway boshlanganda shu yerda ko‘rinadi.</div></div>`;
+    return;
+  }
+  const g=data.giveaway,s=data.state||{};
+  a.innerHTML=`
+  <div class="card">
+    ${g.image_file_id?`<div class="small">Telegram poster rasmi mavjud</div>`:""}
+    <div class="title">${esc(g.title)}</div>
+    <div class="desc">${esc(g.description||"")}</div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="pc">${data.participantCount}</div><div class="lbl">ISHTIROKCHI</div></div>
+      <div class="stat"><div class="num">${g.total_rounds}</div><div class="lbl">G‘OLIB</div></div>
+      <div class="stat"><div class="num" id="vc">${data.viewerCount}</div><div class="lbl">LIVE</div></div>
+    </div>
+    <div class="timer" id="timer">--:--</div>
+    <div class="status" id="status">${s.status==="spinning"?"🎡 BARABAN AYLANMOQDA":s.status==="running"?"LIVE":"⏳ KUTILMOQDA"}</div>
+    <button id="joinBtn" onclick="joinGiveaway()">🎉 QATNASHISH</button><div id="joinMsg" class="small"></div>
+    <div class="wheel"><div class="pointer"></div><div id="track" class="track"></div></div>
+    <div id="winner"></div>
+    <div class="small">Giveaway #${g.id}</div>
+  </div>`;
+  updateTrack(s);tick();
+}
+
+function tick(){
+  const t=document.getElementById("timer");if(!t||!data)return;
+  const s=data.state||{},g=data.giveaway,now=Date.now();
+  if(s.status==="scheduled" && g.start_at){
+    t.textContent=fmt(new Date(g.start_at).getTime()-now);
+    requestAnimationFrame(tick);
+  }else if(s.status==="spinning"&&s.start_at){
+    t.textContent="AYLANMOQDA";
+  }else{
+    t.textContent=s.status==="running"?"LIVE":"--:--";
+  }
+}
+
+function build(list){
+  const el=document.getElementById("track");if(!el)return;
+  el.innerHTML=[...list,...list,...list].map(x=>`<div class="item">${esc(x)}</div>`).join("");
+}
+
+function updateTrack(s){
+  const list=s?.participants||[];if(!list.length)return;
+  build(list);
+  if(s.status==="spinning"&&s.start_at)spin(s);
+}
+
+function spin(s){
+  cancelAnimationFrame(raf);
+  const el=document.getElementById("track");if(!el)return;
+  const w=155, center=(document.querySelector(".wheel")?.clientWidth||600)/2-w/2;
+  const idx=(Number(s.target_index)||0)+listOffset(s);
+  const end=center-idx*w;
+  const start=center-Number(s.currentIndex||0)*w;
+  const startAt=Number(s.start_at),dur=Number(s.duration_ms||8000);
+  function f(){
+    const p=Math.max(0,Math.min(1,(Date.now()-startAt)/dur));
+    const e=1-Math.pow(1-p,3);
+    el.style.transform=`translateX(${start+(end-start)*e}px)`;
+    if(p<1)raf=requestAnimationFrame(f);
+  }
+  raf=requestAnimationFrame(f);
+}
+function listOffset(s){return Math.max(0,Number((s.participants||[]).length));}
+
+function winner(w){
+  const mine=me&&Number(me.id)===Number(w.userId);
+  document.getElementById("winner").innerHTML=mine
+   ?`<div class="winner mine">🎆 🎉 🎆<br>SIZ G‘OLIB BO‘LDINGIZ!<br><span>${esc(w.label||"")}</span></div>`
+   :`<div class="winner">🏆 G‘OLIB<br><span>${esc(w.label||"")}</span></div>`;
+}
+
+async function joinGiveaway(){
+  if(!tg?.initData){document.getElementById("joinMsg").textContent="Telegram ichidan oching.";return;}
+  if(!data?.giveaway)return;
+  const btn=document.getElementById("joinBtn"); if(btn)btn.disabled=true;
   try{
-    const r=await fetch("/api/finish-round",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({round:Number(d.round)})
-    });
-    const result=await r.json();
-    if(r.ok){
-      if(Array.isArray(result.winners)){
-        currentWinners=result.winners;
-        renderWinners(currentWinners);
-      }
-      if(result.finished){
-        statusEl.textContent="🏆 Barcha g‘oliblar aniqlandi";
-      }
-    }
-  }catch(e){
-    console.error("finish-round:",e);
-  }
+    const r=await fetch("/api/join",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({gid:data.giveaway.id,initData:tg.initData})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||"Qatnashib bo‘lmadi");
+    data.participantCount=d.participantCount;
+    const pc=document.getElementById("pc"); if(pc)pc.textContent=d.participantCount;
+    const msg=document.getElementById("joinMsg"); if(msg)msg.textContent="✅ Siz giveawayga qo‘shildingiz!";
+    if(btn){btn.textContent="✅ QATNASHDINGIZ";btn.disabled=true;}
+  }catch(e){if(btn)btn.disabled=false;const msg=document.getElementById("joinMsg");if(msg)msg.textContent="❌ "+e.message;}
 }
-async function recover(){
-  const r=await fetch("/api/state",{cache:"no-store"});if(!r.ok)return;
-  const s=await r.json();currentWinners=s.winners||[];renderWinners(currentWinners);
-  if(s.status==="spinning"&&Number(s.spin_id)>activeSpin){activeSpin=Number(s.spin_id);spin({round:Number(s.round),spinId:Number(s.spin_id),startAt:Number(s.start_at),durationMs:Number(s.duration_ms),targetIndex:Number(s.target_index),participants:s.participants||[]});}
-}
-async function connect(){
-  const ably=new Ably.Realtime({authCallback:async(_,cb)=>{try{const r=await fetch("/api/ably-token");cb(null,await r.json())}catch(e){cb(e,null)}}});
-  const ch=ably.channels.get("ramz-giveaway");
-  ch.subscribe("round_start",m=>{
-    const d=m.data;if(Number(d.spinId)<=activeSpin)return;
-    activeSpin=Number(d.spinId);currentWinners=d.winners||currentWinners;renderWinners(currentWinners);spin(d);
+
+async function load(){
+  const q=deepGid?`?gid=${encodeURIComponent(deepGid)}`:"";
+  const r=await fetch("/api/current-giveaway"+q,{cache:"no-store"});
+  data=await r.json();draw();
+
+  if(!data?.giveaway)return;
+  if(deepMode==="join") setTimeout(joinGiveaway,100);
+  const tok=await (await fetch("/api/ably-token")).json();
+  const ably=new Ably.Realtime.Promise({
+    authCallback:(params,cb)=>cb(null,tok)
   });
-  ch.subscribe("winner_reveal",m=>{
-    const d=m.data;
-    winnerEl.textContent=d.winner||"";
-    currentWinners=d.winners||currentWinners;renderWinners(currentWinners);
+  ch=ably.channels.get(`giveaway:${data.giveaway.id}`);
+
+  await ch.subscribe("state",e=>{data.state=e.data;draw();});
+  await ch.subscribe("spin_start",e=>{data.state=e.data;draw();});
+  await ch.subscribe("viewers",e=>{
+    const el=document.getElementById("vc");if(el)el.textContent=e.data.count;
   });
-  ch.subscribe("reset",()=>{location.reload()});
-  ably.connection.on("connected",()=>{dot.className="dot ok";ct.textContent="Live"});
-  ably.connection.on("disconnected",()=>{dot.className="dot";ct.textContent="Offline"});
-  await recover();
+  await ch.subscribe("winner",e=>winner(e.data));
 }
-draw([]);connect();
+load().catch(e=>{
+ document.getElementById("app").innerHTML=`<div class="card empty">Ulanishda xatolik.<br>${esc(e.message)}</div>`;
+});
 </script>
-</body>
-</html>
+</body></html>
