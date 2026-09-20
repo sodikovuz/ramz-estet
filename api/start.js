@@ -20,7 +20,7 @@ module.exports = async function(req,res) {
 
     const sql = db();
     const old = await sql`SELECT giveaway_id FROM giveaway_state WHERE id=1`;
-    const giveawayId = Number(old[0]?.giveaway_id||0)+1;
+    const giveawayId = Number(req.body?.giveawayId || (Number(old[0]?.giveaway_id||0)+1));
     const spinId = giveawayId*100+1;
     const round = 1;
     const startAt = Date.now()+1800;
