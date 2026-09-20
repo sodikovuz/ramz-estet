@@ -13,24 +13,28 @@ module.exports=async function(req,res){
   const sql=db();
   const admin=String(process.env.ADMIN_TELEGRAM_ID||"");
 
-  // Inline mode: admin types @botname 5 and gets a shareable giveaway card.
+  // Inline mode: admin types @botname 5
   if(u.inline_query){
-   const iq=u.inline_query;
-   const q=String(iq.query||"").trim();
-   if(String(iq.from?.id)!==admin){
-    await tg("answerInlineQuery",{
-      inline_query_id:iq.id,
-      results:[],
-      cache_time:0,
-      is_personal:true
-    });
-    return res.json({ok:true});
-   }
+    const iq=u.inline_query;
+    const q=String(iq.query||"").trim();
 
-   const rounds=Math.max(1,Math.min(5,Number(q)||5));
-   const gid=Date.now();
+    // Only the configured admin can generate giveaway inline cards.
+    if(String(iq.from?.id)!==admin){
+      await tg("answerInlineQuery",{
+        inline_query_id:iq.id,
+        results:[],
+        cache_time:0,
+        is_personal:true
+      });
+      return res.json({ok:true});
+    }
 
-   await sql`INSERT INTO giveaway_state(
+    // Accept "5", "3", etc. Keep it simple for Telegram inline search.
+    const parsed=parseInt(q,10);
+    const rounds=Math.max(1,Math.min(5,Number.isFinite(parsed)?parsed:5));
+    const gid=Date.now();
+
+    await sql`INSERT INTO giveaway_state(
       id,giveaway_id,round,total_rounds,status,telegram_status,
       winners,participants,updated_at
     ) VALUES(
@@ -48,35 +52,40 @@ module.exports=async function(req,res){
       telegram_message_id=NULL,
       updated_at=NOW()`;
 
-   await sql`DELETE FROM telegram_giveaway_participants WHERE giveaway_id=${gid}`;
+    await sql`DELETE FROM telegram_giveaway_participants WHERE giveaway_id=${gid}`;
 
-   const result={
-    type:"article",
-    id:String(gid),
-    title:`🎁 RAMZ ESTET — ${rounds} ta g‘olib`,
-    description:"Giveaway postini chatga yuborish",
-    input_message_content:{
-      message_text:
-        `🎁 <b>RAMZ ESTET GIVEAWAY</b>\n\n`+
-        `🎯 G‘oliblar: <b>${rounds} ta</b>\n`+
-        `👥 Ishtirokchilar: <b>0</b>\n\n`+
-        `👇 Giveawayga qo‘shiling`,
-      parse_mode:"HTML"
-    },
-    reply_markup:{
-      inline_keyboard:[[
-        {text:"🎉 Giveawayga qo‘shilish (0)",callback_data:`join:${gid}`}
-      ]]
-    }
-   };
+    const result={
+      type:"article",
+      id:`giveaway-${gid}`,
+      title:`🎁 RAMZ ESTET — ${rounds} ta g‘olib`,
+      description:"Giveaway postini chatga yuborish",
+      input_message_content:{
+        message_text:
+          `🎁 <b>RAMZ ESTET GIVEAWAY</b>\n\n`+
+          `🎯 G‘oliblar: <b>${rounds} ta</b>\n`+
+          `👥 Ishtirokchilar: <b>0</b>\n\n`+
+          `👇 Giveawayga qo‘shiling`,
+        parse_mode:"HTML"
+      },
+      reply_markup:{
+        inline_keyboard:[[
+          {
+            text:"🎉 Giveawayga qo‘shilish (0)",
+            callback_data:`join:${gid}`
+          }
+        ]]
+      }
+    };
 
-   await tg("answerInlineQuery",{
-    inline_query_id:iq.id,
-    results:[result],
-    cache_time:0,
-    is_personal:true
-   });
-   return res.json({ok:true});
+    await tg("answerInlineQuery",{
+      inline_query_id:iq.id,
+      results:[result],
+      cache_time:0,
+      is_personal:true,
+      next_offset:""
+    });
+
+    return res.json({ok:true});
   }
 
   // Participant button
