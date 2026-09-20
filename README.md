@@ -1,53 +1,45 @@
-# RAMZ ESTET — Ably realtime wheel demo
+# RAMZ ESTET — 5 Round Ably Realtime Demo
 
-Bu loyiha Vercel + Neon PostgreSQL + Ably yordamida real-time wheel animatsiyasini namoyish qiladi.
+Bu paket:
+- Vercel Functions
+- Neon PostgreSQL
+- Ably realtime
+- 5 ta ketma-ket round
+- Viewerda katta G‘OLIB #1, #2... overlay
+- Winner history
+- Server `startAt` asosida smooth synchronization
 
-## 1. Neon
+## Environment Variables
 
-`schema.sql` ni Neon SQL Editor'da ishga tushiring.
+Vercel:
+- DATABASE_URL
+- ABLY_API_KEY
+- ADMIN_SECRET
 
-Vercel Environment Variables:
+## Neon
 
-- `DATABASE_URL` — Neon connection string
-- `ABLY_API_KEY` — Ably API key
-- `ADMIN_SECRET` — uzun, tasodifiy admin secret
+`schema.sql` ni Neon SQL Editor'da Run qiling.
 
-## 2. Deploy
-
-Project'ni Vercel'ga deploy qiling.
+## Pages
 
 Viewer:
-
 `/`
 
 Admin:
-
 `/admin`
 
-## 3. Admin
+## Admin ishlashi
 
-Admin sahifasida:
+Participantlarni har qatorda yozing.
+Har round uchun target index kiriting.
 
-- Admin secret kiriting
-- Participantlarni qatorma-qator kiriting
-- Target index tanlang
-- Duration tanlang
-- START SPIN bosing
+Masalan 50 participant:
+- G‘olib #1 -> 5
+- G‘olib #2 -> 17
+- G‘olib #3 -> 2
+- G‘olib #4 -> 31
+- G‘olib #5 -> 44
 
-Bu demo winnerni tasodifiy tanlamaydi. Target index admin tomonidan beriladi.
+Har round tugagach admin keyingi roundni ishga tushiradi.
 
-## 4. Realtime
-
-Admin START bosganda Vercel:
-
-1. spin holatini Neon'ga yozadi;
-2. 1.5 soniyalik kelish bufferi bilan `startAt` yaratadi;
-3. Ably'ga `spin` event publish qiladi.
-
-Viewerlar eventni WebSocket orqali oladi va server timestamp asosida animatsiyaning ayni progressidan boshlaydi.
-
-## 5. Muhim
-
-`ABLY_API_KEY` va `ADMIN_SECRET` ni HTML/JS ichiga yozmang.
-
-Viewer Ably'ga token orqali ulanadi.
+Eslatma: bu demo target indexni admin beradi; client-side random prize-selection yo‘q.

@@ -1,10 +1,9 @@
 {
-  "name": "ramz-ably-realtime-demo",
-  "version": "1.0.0",
+  "name": "ramz-ably-5-rounds",
+  "version": "2.0.0",
   "private": true,
-  "scripts": {
-    "dev": "vercel dev"
-  },
+  "engines": { "node": "24.x" },
+  "scripts": { "dev": "vercel dev" },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
     "ably": "^2.10.0"
