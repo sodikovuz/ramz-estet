@@ -1,0 +1,37 @@
+Vercel Hobby function-count fix
+
+Old build had many files directly under /api, so Vercel counted them as
+Serverless Functions and exceeded the Hobby limit of 12.
+
+This build uses ONE Serverless Function:
+  api/[...route].js
+
+All endpoint implementations are now in:
+  lib/api/
+
+The public URLs stay the same:
+  /api/start
+  /api/finish-round
+  /api/telegram-webhook
+  /api/set-webhook
+  /api/watch
+  /api/ably-token
+  /api/giveaway
+  /api/giveaways
+  /api/state
+  /api/next
+  /api/reset
+  /api/telegram-status
+  /api/public-giveaway
+  /api/cron-notify
+
+So frontend and Telegram webhook URLs do not need to change.
+
+After deployment:
+1. Set environment variables as before.
+2. Redeploy.
+3. Re-register Telegram webhook:
+   /api/set-webhook?secret=ADMIN_SECRET
+4. External cron can call:
+   /api/cron-notify
+   with Authorization: Bearer CRON_SECRET
