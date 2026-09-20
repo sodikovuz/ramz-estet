@@ -1,8 +1,0 @@
-{
-  "name":"ramz-estet-professional-giveaway",
-  "version":"4.0.0",
-  "private":true,
-  "engines":{"node":"24.x"},
-  "scripts":{"dev":"vercel dev"},
-  "dependencies":{"@neondatabase/serverless":"^1.0.1","ably":"^2.10.0"}
-}
