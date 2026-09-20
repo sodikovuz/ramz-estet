@@ -1,262 +1,116 @@
-
 const {db}=require("./_db");
-const {tg}=require("./_telegram");
-const {token,baseUrl}=require("./_util");
-
-function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function menu(){
-  return {inline_keyboard:[
-    [{text:"➕ Giveaway yaratish",callback_data:"admin:create"}],
-    [{text:"📋 Giveawaylarim",callback_data:"admin:list"}],
-    [{text:"🏆 G‘oliblar tarixi",callback_data:"admin:history"}]
-  ]};
+const {tg,esc}=require("./_telegram");
+const TZ="Asia/Tashkent";
+function kb(rows){return {inline_keyboard:rows};}
+async function menu(chat){
+ return tg("sendMessage",{chat_id:chat,text:"🎛 <b>RAMZ ESTET ADMIN</b>\n\nKerakli bo‘limni tanlang:",parse_mode:"HTML",reply_markup:kb([
+ [{text:"➕ Giveaway yaratish",callback_data:"new"}],
+ [{text:"📋 Giveawaylarim",callback_data:"list"}],
+ [{text:"🏆 G‘oliblar tarixi",callback_data:"history"}]
+])});
 }
-function controlButtons(gid,tok,status){
-  const b=[
-    [{text:"📤 Posterni yuborish",switch_inline_query:`giveaway:${gid}`}],
-    [{text:"👥 Qatnashchilar",callback_data:`admin:participants:${gid}`}],
-    [{text:"🏆 Natijalar",callback_data:`admin:winners:${gid}`}],
-    [{text:"🌐 Boshqaruv paneli",web_app:{url:`${baseUrl()}/manage.html?gid=${gid}&token=${tok}`}}]
-  ];
-  if(status==="draft"||status==="active")b.push([{text:"🔒 Yopish",callback_data:`admin:close:${gid}`}]);
-  return {inline_keyboard:b};
+async function state(sql,uid,patch){
+ await sql`INSERT INTO admin_sessions(user_id,state,data) VALUES(${uid},'idle','{}'::jsonb)
+ ON CONFLICT(user_id) DO UPDATE SET state=EXCLUDED.state,data=EXCLUDED.data`;
+ if(patch) await sql`UPDATE admin_sessions SET state=${patch.state},data=${JSON.stringify(patch.data)}::jsonb WHERE user_id=${uid}`;
 }
 module.exports=async function(req,res){
  try{
   if(req.method!=="POST")return res.status(405).end();
-  const u=typeof req.body==="string"?JSON.parse(req.body||"{}"):(req.body||{});
-  const sql=db(),admin=String(process.env.ADMIN_TELEGRAM_ID||"");
-
-  // Inline query: admin can type @ramzestetbot giveaway:123 and send the exact giveaway.
-  if(u.inline_query){
-    const iq=u.inline_query;
-    if(String(iq.from?.id)!==admin){
-      await tg("answerInlineQuery",{inline_query_id:iq.id,results:[],cache_time:0,is_personal:true});
-      return res.json({ok:true});
-    }
-    const q=String(iq.query||"").trim();
-    const m=q.match(/^giveaway:(\d+)$/i);
-    if(!m){
-      await tg("answerInlineQuery",{inline_query_id:iq.id,results:[],cache_time:0,is_personal:true});
-      return res.json({ok:true});
-    }
-    const gid=Number(m[1]);
-    const g=(await sql`SELECT * FROM giveaways WHERE id=${gid} LIMIT 1`)[0];
-    if(!g){
-      await tg("answerInlineQuery",{inline_query_id:iq.id,results:[],cache_time:0,is_personal:true});
-      return res.json({ok:true});
-    }
-    const c=(await sql`SELECT COUNT(*)::int n FROM telegram_giveaway_participants WHERE giveaway_id=${gid}`)[0].n;
-    const caption=`🎁 <b>${esc(g.title)}</b>\n\n${esc(g.description)}\n\n🎯 G‘oliblar: <b>${Number(g.total_rounds)}</b>\n👥 Ishtirokchilar: <b>${c}</b>\n\n👇 Giveawayga qo‘shiling`;
-    const markup={inline_keyboard:[[{text:`🎉 Giveawayga qo‘shilish (${c})`,callback_data:`join:${gid}`}]]};
-    let result;
-    if(g.image_file_id){
-      result={
-        type:"photo",id:`giveaway-${gid}`,photo_file_id:g.image_file_id,
-        title:g.title,description:g.description||"RAMZ ESTET Giveaway",
-        caption,parse_mode:"HTML",reply_markup:markup
-      };
-    }else{
-      result={
-        type:"article",id:`giveaway-${gid}`,title:g.title,
-        description:g.description||"RAMZ ESTET Giveaway",
-        input_message_content:{message_text:caption,parse_mode:"HTML"},
-        reply_markup:markup
-      };
-    }
-    await tg("answerInlineQuery",{inline_query_id:iq.id,results:[result],cache_time:0,is_personal:true});
-    return res.json({ok:true});
-  }
-
-  if(u.chosen_inline_result){
-    const r=u.chosen_inline_result;
-    const m=String(r.result_id||"").match(/^giveaway-(\d+)$/);
-    if(m && String(r.from?.id)===admin){
-      const gid=Number(m[1]);
-      await sql`UPDATE giveaways SET posted_chat_id=NULL,posted_message_id=NULL WHERE id=${gid}`;
-      // inline_message_id is the durable identifier Telegram gives to an inline-sent message.
-      if(r.inline_message_id){
-        await sql`UPDATE giveaway_state SET telegram_status='open',updated_at=NOW() WHERE id=1 AND giveaway_id=${gid}`;
-      }
-    }
-    return res.json({ok:true});
-  }
-
-  // Callback buttons
+  const u=typeof req.body==="string"?JSON.parse(req.body||"{}"):(req.body||{}),sql=db(),admin=String(process.env.ADMIN_TELEGRAM_ID||"");
+  if(u.inline_query){return res.json({ok:true});}
+  if(u.chosen_inline_result)return res.json({ok:true});
   if(u.callback_query){
-    const q=u.callback_query,data=String(q.data||"");
+   const q=u.callback_query,data=String(q.data||""),chat=q.message?.chat?.id,uid=q.from?.id;
+   if(String(uid)!==admin){await tg("answerCallbackQuery",{callback_query_id:q.id,text:"Faqat admin.",show_alert:true});return res.json({ok:true});}
+   await tg("answerCallbackQuery",{callback_query_id:q.id});
+   if(data==="new"){
+    await state(sql,uid,{state:"title",data:{}});
+    await tg("sendMessage",{chat_id:chat,text:"🎁 Giveaway nomini yuboring:"}); return res.json({ok:true});
+   }
+   if(data==="list"){
+    const gs=await sql`SELECT id,title,total_rounds,status,start_at FROM giveaways WHERE created_by=${uid} ORDER BY created_at DESC LIMIT 30`;
+    const rows=gs.map(g=>[{text:`#${g.id} ${g.title} — ${g.status}`,callback_data:`g:${g.id}`}]);
+    rows.push([{text:"🏠 Menu",callback_data:"menu"}]);
+    await tg("sendMessage",{chat_id:chat,text:gs.length?"📋 <b>Giveawaylarim</b>":"Hali giveaway yo‘q.",parse_mode:"HTML",reply_markup:kb(rows)});return res.json({ok:true});
+   }
+   if(data==="history"){
+    const ws=await sql`SELECT w.giveaway_id,w.round,w.winner_label,w.won_at,g.title FROM giveaway_winners w JOIN giveaways g ON g.id=w.giveaway_id WHERE g.created_by=${uid} ORDER BY w.won_at DESC LIMIT 100`;
+    const t=ws.length?ws.map(w=>`🏆 #${w.giveaway_id} ${esc(w.title)}\nRound ${w.round}: <b>${esc(w.winner_label)}</b>\n🕒 ${new Date(w.won_at).toLocaleString("uz-UZ",{timeZone:TZ})}`).join("\n\n"):"Hali g‘oliblar tarixi yo‘q.";
+    await tg("sendMessage",{chat_id:chat,text:`🏆 <b>G‘oliblar tarixi</b>\n\n${t}`,parse_mode:"HTML"});return res.json({ok:true});
+   }
+   if(data==="menu"){await menu(chat);return res.json({ok:true});}
+   if(data.startsWith("g:")){
+    const gid=Number(data.slice(2)),g=(await sql`SELECT * FROM giveaways WHERE id=${gid} AND created_by=${uid}`)[0];
+    if(!g)return res.json({ok:true});
+    const c=(await sql`SELECT COUNT(*)::int n FROM telegram_giveaway_participants WHERE giveaway_id=${gid}`)[0].n;
+    const url=`${process.env.PUBLIC_BASE_URL}/manage.html?gid=${gid}&token=${encodeURIComponent(process.env.ADMIN_SECRET||"")}`;
+    const watch=`https://t.me/${process.env.BOT_USERNAME||"ramzestetbot"}/app?startapp=giveaway_${gid}`;
+    await tg("sendMessage",{chat_id:chat,text:`🎁 <b>#${gid} ${esc(g.title)}</b>\n\n👥 ${c}\n🏆 ${g.total_rounds} g‘olib\n🕐 ${new Date(g.start_at).toLocaleString("uz-UZ",{timeZone:TZ})}\n\nHolat: <b>${esc(g.status)}</b>`,parse_mode:"HTML",reply_markup:kb([
+      [{text:"👥 Qatnashchilar",callback_data:`p:${gid}`}],
+      [{text:"▶️ Boshlash",callback_data:`start:${gid}`}],
+      [{text:"🌐 Boshqaruv paneli",url:url}],
+      [{text:"👁 Tomosha qilish",url:watch}]
+    ])});return res.json({ok:true});
+   }
+   if(data.startsWith("p:")){
+    const gid=Number(data.slice(2)),ps=await sql`SELECT username,first_name,user_id,joined_at FROM telegram_giveaway_participants WHERE giveaway_id=${gid} ORDER BY joined_at DESC`;
+    const t=ps.length?ps.map((p,i)=>`${i+1}. ${esc(p.username?`@${p.username}`:p.first_name||p.user_id)} — ${new Date(p.joined_at).toLocaleString("uz-UZ",{timeZone:TZ})}`).join("\n"):"Hali qatnashchi yo‘q.";
+    await tg("sendMessage",{chat_id:chat,text:`👥 <b>Qatnashchilar #${gid}</b>\n\n${t}`,parse_mode:"HTML"});return res.json({ok:true});
+   }
+   if(data.startsWith("start:")){
+    const gid=Number(data.slice(6));
+    const fake={method:"POST",body:{action:"start"},headers:{"x-admin-secret":process.env.ADMIN_SECRET},query:{gid}};
+    const r={statusCode:200,status(n){this.statusCode=n;return this},json(v){this.data=v;return this}};
+    const handler=require("./giveaway"); await handler(fake,r);
+    await tg("sendMessage",{chat_id:chat,text:r.statusCode>=400?`❌ ${esc(r.data?.error||"Xatolik")}`:"🎡 Giveaway boshlandi!" ,parse_mode:"HTML"});
+    return res.json({ok:true});
+   }
+  }
 
-    if(data.startsWith("join:")){
-      const gid=Number(data.split(":")[1]);
-      const g=(await sql`SELECT * FROM giveaways WHERE id=${gid} LIMIT 1`)[0];
-      if(!g){await tg("answerCallbackQuery",{callback_query_id:q.id,text:"Giveaway topilmadi.",show_alert:true});return res.json({ok:true});}
-      if(g.telegram_status!=="open"){await tg("answerCallbackQuery",{callback_query_id:q.id,text:"Giveaway yopilgan.",show_alert:true});return res.json({ok:true});}
-      await sql`INSERT INTO telegram_giveaway_participants(giveaway_id,user_id,username,first_name)
-        VALUES(${gid},${q.from.id},${q.from.username||null},${q.from.first_name||""})
-        ON CONFLICT(giveaway_id,user_id) DO NOTHING`;
-      const c=(await sql`SELECT COUNT(*)::int n FROM telegram_giveaway_participants WHERE giveaway_id=${gid}`)[0].n;
-      await tg("answerCallbackQuery",{callback_query_id:q.id,text:"✅ Giveawayga qo‘shildingiz!"});
-      const msg=q.message,inlineId=q.inline_message_id;
-      const caption=`🎁 <b>${esc(g.title)}</b>\n\n${esc(g.description)}\n\n🎯 G‘oliblar: <b>${Number(g.total_rounds)}</b>\n👥 Ishtirokchilar: <b>${c}</b>\n\n👇 Giveawayga qo‘shiling`;
-      const markup={inline_keyboard:[[{text:`🎉 Giveawayga qo‘shilish (${c})`,callback_data:`join:${gid}`}]]};
-      if(inlineId){
-        try{
-          if(g.image_file_id){
-            await tg("editMessageCaption",{inline_message_id:inlineId,caption,parse_mode:"HTML",reply_markup:markup});
-          }else{
-            await tg("editMessageText",{inline_message_id:inlineId,text:caption,parse_mode:"HTML",reply_markup:markup});
-          }
-        }catch(e){console.error("inline update",e);}
-      }else if(msg?.chat?.id&&msg?.message_id){
-        if(g.image_file_id)await tg("editMessageCaption",{chat_id:msg.chat.id,message_id:msg.message_id,caption,parse_mode:"HTML",reply_markup:markup});
-        else await tg("editMessageText",{chat_id:msg.chat.id,message_id:msg.message_id,text:caption,parse_mode:"HTML",reply_markup:markup});
-      }
-      return res.json({ok:true});
-    }
-
-    if(String(q.from?.id)!==admin){
-      await tg("answerCallbackQuery",{callback_query_id:q.id,text:"Faqat admin uchun.",show_alert:true});
-      return res.json({ok:true});
-    }
-
-    if(data==="admin:create"){
-      await sql`INSERT INTO admin_drafts(admin_user_id,description,image_file_id,step,updated_at)
-        VALUES(${q.from.id},'',NULL,'description',NOW())
-        ON CONFLICT(admin_user_id) DO UPDATE SET description='',image_file_id=NULL,step='description',updated_at=NOW()`;
-      await tg("answerCallbackQuery",{callback_query_id:q.id});
-      await tg("sendMessage",{chat_id:q.message.chat.id,
-        text:"📝 <b>1/3</b>\nGiveaway opisaniyasini yuboring.\n\nMasalan: “RAMZ ESTET giveaway — omadli ishtirokchilar uchun.”\n\nRasmni caption bilan yuborsangiz, opisaniya sifatida caption olinadi.",
-        parse_mode:"HTML"});
-      return res.json({ok:true});
-    }
-
-    if(data==="admin:history"){
-      const ws=await sql`
-        SELECT w.round,w.winner_label,w.username,w.won_at,g.id AS giveaway_id,g.title
-        FROM giveaway_winners w
-        JOIN giveaways g ON g.id=w.giveaway_id
-        ORDER BY w.won_at DESC
-        LIMIT 100`;
-      const text=ws.length
-        ? ws.map(w=>`🏆 Giveaway #${Number(w.giveaway_id)} — ${esc(w.winner_label)}${w.username?` (@${esc(w.username)})`:""}\n🕒 ${new Date(w.won_at).toLocaleString("uz-UZ")}`).join("\n\n")
-        : "Hali g‘oliblar tarixi yo‘q.";
-      await tg("answerCallbackQuery",{callback_query_id:q.id});
-      await tg("sendMessage",{chat_id:q.message.chat.id,text:`🏆 <b>G‘oliblar tarixi</b>\n\n${text}`,parse_mode:"HTML"});
-      return res.json({ok:true});
-    }
-
-    if(data==="admin:list"){
-      const gs=await sql`SELECT id,title,description,total_rounds,status,telegram_status,created_at FROM giveaways ORDER BY id DESC LIMIT 30`;
-      if(!gs.length){await tg("answerCallbackQuery",{callback_query_id:q.id,text:"Hali giveaway yo‘q."});return res.json({ok:true});}
-      const kb=gs.map(g=>[{text:`#${g.id} • ${String(g.title).slice(0,35)} • ${g.status}`,callback_data:`admin:view:${Number(g.id)}`}]);
-      await tg("answerCallbackQuery",{callback_query_id:q.id});
-      await tg("sendMessage",{chat_id:q.message.chat.id,text:"📋 <b>Giveawaylarim</b>\nKerakli giveawayni tanlang:",parse_mode:"HTML",reply_markup:{inline_keyboard:kb}});
-      return res.json({ok:true});
-    }
-
-    let m;
-    if((m=data.match(/^admin:view:(\d+)$/))){
-      const gid=Number(m[1]),g=(await sql`SELECT * FROM giveaways WHERE id=${gid} LIMIT 1`)[0];
-      if(!g)return res.json({ok:true});
-      const c=(await sql`SELECT COUNT(*)::int n FROM telegram_giveaway_participants WHERE giveaway_id=${gid}`)[0].n;
-      const ws=await sql`SELECT round,winner_label,won_at FROM giveaway_winners WHERE giveaway_id=${gid} ORDER BY round`;
-      const winners=ws.length?ws.map(w=>`🏆 #${w.round} — ${esc(w.winner_label)}`).join("\n"):"Hali g‘olib aniqlanmagan.";
-      await tg("answerCallbackQuery",{callback_query_id:q.id});
-      await tg("sendMessage",{chat_id:q.message.chat.id,
-        text:`🎁 <b>Giveaway #${gid}</b>\n\n<b>${esc(g.title)}</b>\n${esc(g.description)}\n\n👥 Qatnashchilar: <b>${c}</b>\n🎯 Raundlar: <b>${Number(g.total_rounds)}</b>\n📌 Status: <b>${esc(g.status)}</b>\n\n${winners}`,
-        parse_mode:"HTML",reply_markup:controlButtons(gid,g.panel_token,g.status)});
-      return res.json({ok:true});
-    }
-
-    if((m=data.match(/^admin:participants:(\d+)$/))){
-      const gid=Number(m[1]),ps=await sql`SELECT username,first_name,joined_at FROM telegram_giveaway_participants WHERE giveaway_id=${gid} ORDER BY joined_at`;
-      const text=ps.length?ps.map((p,i)=>`${i+1}. ${p.username?`@${p.username}`:esc(p.first_name||"User")} — ${new Date(p.joined_at).toLocaleString("uz-UZ")}`).join("\n"):"Hali hech kim qo‘shilmagan.";
-      await tg("answerCallbackQuery",{callback_query_id:q.id});
-      await tg("sendMessage",{chat_id:q.message.chat.id,text:`👥 <b>Giveaway #${gid} qatnashchilari (${ps.length})</b>\n\n${text}`,parse_mode:"HTML"});
-      return res.json({ok:true});
-    }
-
-    if((m=data.match(/^admin:winners:(\d+)$/))){
-      const gid=Number(m[1]),ws=await sql`SELECT round,winner_label,username,won_at FROM giveaway_winners WHERE giveaway_id=${gid} ORDER BY round`;
-      const text=ws.length?ws.map(w=>`🏆 #${w.round} — ${esc(w.winner_label)} ${w.username?`(@${esc(w.username)})`:""}\n🕒 ${new Date(w.won_at).toLocaleString("uz-UZ")}`).join("\n\n"):"Hali natija yo‘q.";
-      await tg("answerCallbackQuery",{callback_query_id:q.id});
-      await tg("sendMessage",{chat_id:q.message.chat.id,text:`🏆 <b>Giveaway #${gid} natijalari</b>\n\n${text}`,parse_mode:"HTML"});
-      return res.json({ok:true});
-    }
-
-    if((m=data.match(/^admin:close:(\d+)$/))){
-      const gid=Number(m[1]);
-      await sql`UPDATE giveaways SET telegram_status='closed' WHERE id=${gid}`;
-      await sql`UPDATE giveaway_state SET telegram_status='closed' WHERE id=1 AND giveaway_id=${gid}`;
-      await tg("answerCallbackQuery",{callback_query_id:q.id,text:"🔒 Giveaway yopildi."});
-      return res.json({ok:true});
+  const m=u.message;if(!m)return res.json({ok:true});const chat=m.chat.id,uid=m.from?.id,text=String(m.text||"").trim();
+  if(String(uid)!==admin){await tg("sendMessage",{chat_id:chat,text:"Bu bot admin boshqaruvi uchun."});return res.json({ok:true});}
+  if(text==="/start"){await menu(chat);return res.json({ok:true});}
+  const sess=(await sql`SELECT * FROM admin_sessions WHERE user_id=${uid}`)[0];
+  if(!sess){await menu(chat);return res.json({ok:true});}
+  const d=sess.data||{};
+  if(sess.state==="title"){
+    d.title=text;await state(sql,uid,{state:"description",data:d});
+    await tg("sendMessage",{chat_id:chat,text:"📄 Opisaniyani yuboring (o‘tkazib yuborish uchun -):"});return res.json({ok:true});
+  }
+  if(sess.state==="description"){
+    d.description=text==="-"?"":text;await state(sql,uid,{state:"rounds",data:d});
+    await tg("sendMessage",{chat_id:chat,text:"🏆 G‘oliblar soni? (1–50)"});return res.json({ok:true});
+  }
+  if(sess.state==="rounds"){
+    const n=Math.max(1,Math.min(50,Number(text)||5));d.total_rounds=n;await state(sql,uid,{state:"date",data:d});
+    await tg("sendMessage",{chat_id:chat,text:"📅 Boshlanish sanasi (YYYY-MM-DD):"});return res.json({ok:true});
+  }
+  if(sess.state==="date"){
+    d.date=text;await state(sql,uid,{state:"time",data:d});await tg("sendMessage",{chat_id:chat,text:"🕐 Boshlanish vaqti (HH:MM, Toshkent vaqti):"});return res.json({ok:true});
+  }
+  if(sess.state==="time"){
+    d.time=text;
+    const iso=`${d.date}T${d.time}:00+05:00`;
+    const dt=new Date(iso);if(Number.isNaN(dt.getTime())){await tg("sendMessage",{chat_id:chat,text:"❌ Sana/vaqt noto‘g‘ri. Qayta yuboring."});return res.json({ok:true});}
+    const g=(await sql`INSERT INTO giveaways(title,description,total_rounds,status,start_at,created_by) VALUES(${d.title},${d.description},${d.total_rounds},'scheduled',${dt},${uid}) RETURNING id`)[0];
+    await sql`INSERT INTO giveaway_state(id,giveaway_id,round,total_rounds,status,telegram_status,updated_at) VALUES(1,${g.id},1,${d.total_rounds},'scheduled','open',NOW()) ON CONFLICT(id) DO UPDATE SET giveaway_id=EXCLUDED.giveaway_id,total_rounds=EXCLUDED.total_rounds,status='scheduled',telegram_status='open',updated_at=NOW()`;
+    await state(sql,uid,{state:"idle",data:{}});
+    await tg("sendMessage",{chat_id:chat,text:`✅ <b>Giveaway #${g.id} yaratildi</b>\n\n${esc(d.title)}\n🏆 ${d.total_rounds} ta g‘olib\n🕐 ${dt.toLocaleString("uz-UZ",{timeZone:TZ})}\n\nRasm yuborishingiz mumkin.`,parse_mode:"HTML",reply_markup:kb([
+      [{text:"📤 Posterni yuborish",callback_data:`g:${g.id}`}],
+      [{text:"📋 Giveawaylarim",callback_data:"list"}]
+    ])});return res.json({ok:true});
+  }
+  // Photo upload after creation: save file_id into latest giveaway.
+  if(m.photo?.length){
+    const latest=(await sql`SELECT id FROM giveaways WHERE created_by=${uid} ORDER BY created_at DESC LIMIT 1`)[0];
+    if(latest){
+      const fid=m.photo[m.photo.length-1].file_id;
+      await sql`UPDATE giveaways SET image_file_id=${fid} WHERE id=${latest.id}`;
+      await tg("sendMessage",{chat_id:chat,text:`🖼 Rasm saqlandi.\nGiveaway #${latest.id} uchun poster yuborish tugmasini bosing.`});
     }
     return res.json({ok:true});
   }
-
-  // Messages / creation wizard
-  const m=u.message;
-  if(!m?.chat)return res.json({ok:true});
-  const chat=m.chat.id,uid=m.from?.id,text=String(m.text||"").trim();
-
-  if(String(uid)!==admin){
-    return res.json({ok:true});
-  }
-
-  if(text==="/start"){
-    await tg("sendMessage",{chat_id:chat,text:"👋 <b>RAMZ ESTET ADMIN</b>\n\nGiveawaylarni shu yerdan boshqaring.",parse_mode:"HTML",reply_markup:menu()});
-    return res.json({ok:true});
-  }
-
-  if(text==="/giveaways"){
-    await tg("sendMessage",{chat_id:chat,text:"📋 Giveawaylarim",reply_markup:menu()});
-    return res.json({ok:true});
-  }
-
-  const draft=(await sql`SELECT * FROM admin_drafts WHERE admin_user_id=${uid} LIMIT 1`)[0];
-
-  if(draft?.step==="description" && !m.photo && text){
-    await sql`UPDATE admin_drafts SET description=${text},step='media',updated_at=NOW() WHERE admin_user_id=${uid}`;
-    await tg("sendMessage",{chat_id:chat,text:"🖼 <b>2/3</b>\nRasm yuboring (ixtiyoriy).\n\nRasm kerak bo‘lmasa <code>/skip</code> yuboring.",parse_mode:"HTML"});
-    return res.json({ok:true});
-  }
-
-  if(draft?.step==="description" && m.photo){
-    const fileId=m.photo[m.photo.length-1].file_id;
-    const desc=String(m.caption||"");
-    await sql`UPDATE admin_drafts SET description=${desc},image_file_id=${fileId},step='rounds',updated_at=NOW() WHERE admin_user_id=${uid}`;
-    await tg("sendMessage",{chat_id:chat,text:"🔢 <b>3/3</b>\nNechta g‘olib kerak? 1 dan 50 gacha son yuboring.\n\nMasalan: <code>5</code>",parse_mode:"HTML"});
-    return res.json({ok:true});
-  }
-
-  if(draft?.step==="media"){
-    if(text==="/skip"){
-      await sql`UPDATE admin_drafts SET image_file_id=NULL,step='rounds',updated_at=NOW() WHERE admin_user_id=${uid}`;
-      await tg("sendMessage",{chat_id:chat,text:"🔢 <b>3/3</b>\nNechta g‘olib kerak? 1 dan 50 gacha son yuboring.",parse_mode:"HTML"});
-      return res.json({ok:true});
-    }
-    if(m.photo){
-      const fileId=m.photo[m.photo.length-1].file_id;
-      await sql`UPDATE admin_drafts SET image_file_id=${fileId},step='rounds',updated_at=NOW() WHERE admin_user_id=${uid}`;
-      await tg("sendMessage",{chat_id:chat,text:"🔢 <b>3/3</b>\nNechta g‘olib kerak? 1 dan 50 gacha son yuboring.",parse_mode:"HTML"});
-      return res.json({ok:true});
-    }
-  }
-
-  if(draft?.step==="rounds" && text){
-    const rounds=Math.max(1,Math.min(50,parseInt(text,10)||0));
-    if(!rounds){await tg("sendMessage",{chat_id:chat,text:"Iltimos, 1–50 oralig‘ida son yuboring."});return res.json({ok:true});}
-    const gid=Date.now(),tok=token();
-    await sql`INSERT INTO giveaways(id,title,description,image_file_id,total_rounds,duration_ms,status,telegram_status,panel_token,created_by)
-      VALUES(${gid},'RAMZ ESTET GIVEAWAY',${draft.description||""},${draft.image_file_id||null},${rounds},8000,'draft','open',${tok},${uid})`;
-    await sql`DELETE FROM admin_drafts WHERE admin_user_id=${uid}`;
-    await tg("sendMessage",{chat_id:chat,
-      text:`✅ <b>Giveaway #${gid} yaratildi!</b>\n\n📝 ${esc(draft.description||"—")}\n🎯 G‘oliblar: <b>${rounds}</b>\n🖼 Rasm: <b>${draft.image_file_id?"bor":"yo‘q"}</b>\n\nEndi posterini chatga yuborishingiz mumkin.`,
-      parse_mode:"HTML",reply_markup:controlButtons(gid,tok,"draft")});
-    return res.json({ok:true});
-  }
-
-  await tg("sendMessage",{chat_id:chat,text:"Menyu:",reply_markup:menu()});
-  return res.json({ok:true});
- }catch(e){console.error(e);return res.status(500).json({error:e.message});}
+  await menu(chat);return res.json({ok:true});
+ }catch(e){console.error(e);res.status(500).json({error:e.message});}
 };
