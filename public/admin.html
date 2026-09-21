@@ -33,6 +33,14 @@ button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;cursor:poin
 </div>
 </div>
 <script>
+(function(){
+ const report=(e,a='window.error')=>{try{const b={level:'error',action:a,message:e?.message||String(e||'Unknown error'),stack:e?.stack||'',url:location.href,page:location.pathname}; const j=JSON.stringify(b); if(navigator.sendBeacon){const blob=new Blob([j],{type:'application/json'}); navigator.sendBeacon('/api/client-log',blob);} fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json'},body:j,keepalive:true}).catch(()=>{});}catch(_){}};
+ window.addEventListener('error',e=>report(e.error||new Error(e.message),'window.error'));
+ window.addEventListener('unhandledrejection',e=>report(e.reason||new Error('Unhandled rejection'),'unhandledrejection'));
+ window.RAMZ_REPORT_ERROR=report;
+})();
+</script>
+<script>
 const $=id=>document.getElementById(id);
 $("start").onclick=async()=>{
  const participants=$("participants").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);

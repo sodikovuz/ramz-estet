@@ -22,7 +22,9 @@ img.poster{width:100%;max-height:320px;object-fit:cover;border-radius:14px;margi
     try{
       const tg=window.Telegram?.WebApp;
       const body={...payload,level:payload.level||'error',url:location.href,page:location.pathname};
-      const p=fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':tg?.initData||''},body:JSON.stringify(body),keepalive:true});
+      const payload=JSON.stringify(body);
+      try{if(navigator.sendBeacon){const blob=new Blob([payload],{type:'application/json'});navigator.sendBeacon('/api/client-log',blob);}}catch(_){ }
+      const p=fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':tg?.initData||''},body:payload,keepalive:true});
       if(p&&p.catch)p.catch(()=>{});
     }catch(_){}
   };
