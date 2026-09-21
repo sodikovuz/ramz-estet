@@ -1,0 +1,1 @@
+Inline post now uses InlineQueryResultCachedPhoto when image_file_id exists, preserving secure Telegram file_id usage; falls back to article when no poster exists.\n
