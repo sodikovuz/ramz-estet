@@ -17,6 +17,9 @@ img.poster{width:100%;max-height:320px;object-fit:cover;border-radius:14px;margi
 <div class="top"><div><div class="brand">RAMZ ESTET</div><div class="muted">Giveaway boshqaruv paneli</div></div><button class="refresh" onclick="load()">↻ Yangilash</button></div>
 <div id="app" class="grid"><div class="card">Yuklanmoqda...</div></div>
 <script>
+(function(){window.addEventListener('error',function(e){try{fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':window.Telegram?.WebApp?.initData||''},body:JSON.stringify({level:'error',action:'window.error',message:e.message||'Client error',stack:e.error?.stack||'',page:location.pathname})})}catch(_){}});window.addEventListener('unhandledrejection',function(e){try{fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':window.Telegram?.WebApp?.initData||''},body:JSON.stringify({level:'error',action:'unhandledrejection',message:String(e.reason?.message||e.reason||'Unhandled rejection'),stack:e.reason?.stack||'',page:location.pathname})})}catch(_){}})})();
+</script>
+<script>
 const token=new URLSearchParams((location.hash||'').replace(/^#/,'' )).get('token')||'';
 const headers={'Content-Type':'application/json','x-panel-token':token};
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":'&#39;'}[m]));

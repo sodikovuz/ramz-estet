@@ -102,3 +102,18 @@ CREATE TABLE IF NOT EXISTS startapp_tokens (
 );
 CREATE INDEX IF NOT EXISTS startapp_tokens_exp_idx ON startapp_tokens(expires_at);
 CREATE INDEX IF NOT EXISTS startapp_tokens_giveaway_idx ON startapp_tokens(giveaway_id, action);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id BIGSERIAL PRIMARY KEY,
+  request_id TEXT,
+  level TEXT NOT NULL DEFAULT 'info',
+  source TEXT NOT NULL,
+  action TEXT,
+  admin_user_id BIGINT,
+  giveaway_id BIGINT,
+  message TEXT,
+  meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS audit_logs_created_idx ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS audit_logs_level_idx ON audit_logs(level,created_at DESC);

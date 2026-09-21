@@ -17,6 +17,9 @@
 <div class="brand">RAMZ ESTET</div><div class="muted">LIVE GIVEAWAY</div>
 <div id="app"></div>
 <script>
+(function(){window.addEventListener('error',function(e){try{fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':window.Telegram?.WebApp?.initData||''},body:JSON.stringify({level:'error',action:'window.error',message:e.message||'Client error',stack:e.error?.stack||'',page:location.pathname})})}catch(_){}});window.addEventListener('unhandledrejection',function(e){try{fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':window.Telegram?.WebApp?.initData||''},body:JSON.stringify({level:'error',action:'unhandledrejection',message:String(e.reason?.message||e.reason||'Unhandled rejection'),stack:e.reason?.stack||'',page:location.pathname})})}catch(_){}})})();
+</script>
+<script>
 const tg=window.Telegram?.WebApp; tg?.ready(); tg?.expand();
 const q=new URLSearchParams(location.search);
 const tgInit=tg?.initData||'';

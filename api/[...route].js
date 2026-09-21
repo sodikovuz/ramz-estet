@@ -17,7 +17,8 @@ const routes = {
   "current-giveaway": "./current-giveaway",
   "ably-token": "./ably-token",
   "finish-round": "./finish-round",
-  "winner-status": "./winner-status"
+  "winner-status": "./winner-status",
+  "client-log": "./client-log"
 };
 
 module.exports = async function(req, res) {
