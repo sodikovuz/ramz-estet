@@ -113,7 +113,7 @@ async function start(){
    if(!token.keyName) throw new Error(token.error||'Realtime token xatosi');
    const ably=new Ably.Realtime.Promise({authCallback:(params,cb)=>cb(null,token)});
    channel=ably.channels.get(`giveaway:${meta.giveaway.id}`);
-   await channel.subscribe("state",e=>{meta.state=e.data;render();});
+   await channel.subscribe("state",e=>{meta.state=e.data;render();});s
    await channel.subscribe("viewers",e=>{document.getElementById("viewers").textContent=e.data.count;});
    await channel.subscribe("spin_start",e=>{meta.state=e.data;render();});
    await channel.subscribe("winner",e=>showWinner(e.data));
