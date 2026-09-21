@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>RAMZ ESTET — LIVE</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#070707;color:#fff;font-family:Arial,sans-serif;text-align:center}
-.wrap{width:min(900px,94vw);margin:auto;padding:18px 0 40px}.brand{font-weight:950;letter-spacing:4px;font-size:26px}.muted{color:#888}
-.card{background:#111;border:1px solid #fff2;border-radius:20px;padding:20px;margin-top:15px}.count{font-size:17px}.timer{font-size:42px;font-weight:950;margin:15px}.status{font-weight:900;margin:8px}
-.wheel{margin:22px auto;width:min(620px,88vw);height:190px;overflow:hidden;border:2px solid #333;border-radius:22px;position:relative;background:#0b0b0b}
+*{box-sizing:border-box}html,body{width:100%;height:100%;min-height:100%;overflow:hidden}body{margin:0;background:#070707;color:#fff;font-family:Arial,sans-serif;text-align:center;overscroll-behavior:none}
+.wrap{width:100%;height:100svh;margin:auto;padding:clamp(6px,1.5vh,18px) clamp(8px,3vw,22px);display:flex;flex-direction:column;overflow:hidden}.brand{font-weight:950;letter-spacing:clamp(2px,1vw,4px);font-size:clamp(20px,5vw,30px);flex:0 0 auto}.muted{color:#888}
+.card{background:#111;border:1px solid #fff2;border-radius:20px;padding:clamp(8px,2vh,20px);margin:clamp(5px,1.5vh,15px) auto 0;width:min(900px,100%);height:calc(100svh - 75px);min-height:0;overflow:hidden;display:flex;flex-direction:column}.count{font-size:17px}.timer{font-size:clamp(24px,7vw,42px);font-weight:950;margin:clamp(5px,1.5vh,15px)}.status{font-weight:900;margin:8px}
+.wheel{margin:clamp(7px,2vh,22px) auto;width:min(620px,92vw);height:min(190px,calc(100svh - 300px));overflow:hidden;border:2px solid #333;border-radius:22px;position:relative;background:#0b0b0b}
 .track{display:flex;align-items:center;height:100%;gap:12px;position:absolute;left:0;will-change:transform}
-.item{min-width:150px;padding:28px 12px;border:1px solid #333;border-radius:15px;font-weight:900;background:#151515}
+.item{min-width:clamp(105px,18vw,150px);padding:clamp(12px,3vh,28px) 10px;border:1px solid #333;border-radius:15px;font-weight:900;background:#151515}
 .pointer{position:absolute;z-index:3;left:50%;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 15px #fff}
-.win{font-size:34px;font-weight:950;padding:22px}.confetti{font-size:42px}
+.win{font-size:clamp(24px,7vw,40px);font-weight:950;padding:clamp(8px,2vh,22px)}.confetti{font-size:42px}
 .viewer{font-size:13px;color:#999}
 </style></head><body><div class="wrap">
 <div class="brand">RAMZ ESTET</div><div class="muted">LIVE GIVEAWAY</div>
