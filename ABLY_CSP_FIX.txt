@@ -1,0 +1,9 @@
+ABLY CSP FIX
+
+Fixed Content-Security-Policy for Telegram Mini App:
+- Allows https://cdn.ably.com in script-src and script-src-elem.
+- Allows https://main.realtime.ably.net and *.ably-realtime.com in connect-src.
+- Allows wss://*.ably-realtime.com for realtime WebSocket fallback.
+- Keeps Telegram and existing Ably endpoints.
+
+Also updated public/watch.html to use the secure startapp token and POST /api/ably-token instead of the legacy gid/GET flow.

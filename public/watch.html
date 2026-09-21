@@ -19,12 +19,14 @@
 <script>
 const tg=window.Telegram?.WebApp; tg?.ready(); tg?.expand();
 const q=new URLSearchParams(location.search);
+const tgInit=tg?.initData||'';
+const startParam=tg?.initDataUnsafe?.start_param||q.get('startapp')||q.get('tgWebAppStartParam')||'';
 const gid=Number(q.get("gid")||0);
 let meta=null, state=null, channel=null, me=tg?.initDataUnsafe?.user||null, anim=null;
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
 async function getMeta(){
- const r=await fetch(`/api/watch?gid=${gid}`,{cache:"no-store"}); return r.json();
+ const r=await fetch('/api/current-giveaway',{method:'POST',headers:{'content-type':'application/json','x-telegram-init-data':tgInit},body:JSON.stringify({startApp:startParam}),cache:'no-store'}); return r.json();
 }
 function fmt(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}:${String(m).padStart(2,"0")}:${String(x).padStart(2,"0")}`:`${String(m).padStart(2,"0")}:${String(x).padStart(2,"0")}`;}
 function render(){
@@ -79,14 +81,15 @@ function showWinner(w){
 }
 async function start(){
  try{
-   const r=await fetch(`/api/watch?gid=${gid}&viewer=1`,{
-     method:"POST",headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({initData:tg?.initData||"",user:me||null})
+   const r=await fetch('/api/watch',{
+     method:"POST",headers:{"Content-Type":"application/json","x-telegram-init-data":tgInit},
+     body:JSON.stringify({startApp:startParam})
    });
-   const d=await r.json(); meta={...meta,...d}; render();
-   const token=(await (await fetch("/api/ably-token")).json());
+   const d=await r.json(); if(!r.ok) throw new Error(d.error||'Watch API xatosi'); meta={...meta,...d}; render();
+   const token=(await (await fetch('/api/ably-token',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':tgInit},body:JSON.stringify({startApp:startParam}),cache:'no-store'})).json());
+   if(!token.keyName) throw new Error(token.error||'Realtime token xatosi');
    const ably=new Ably.Realtime.Promise({authCallback:(params,cb)=>cb(null,token)});
-   channel=ably.channels.get(`giveaway:${gid}`);
+   channel=ably.channels.get(`giveaway:${meta.giveaway.id}`);
    await channel.subscribe("state",e=>{meta.state=e.data;render();});
    await channel.subscribe("viewers",e=>{document.getElementById("viewers").textContent=e.data.count;});
    await channel.subscribe("spin_start",e=>{meta.state=e.data;render();});
