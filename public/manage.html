@@ -17,7 +17,19 @@ img.poster{width:100%;max-height:320px;object-fit:cover;border-radius:14px;margi
 <div class="top"><div><div class="brand">RAMZ ESTET</div><div class="muted">Giveaway boshqaruv paneli</div></div><button class="refresh" onclick="load()">↻ Yangilash</button></div>
 <div id="app" class="grid"><div class="card">Yuklanmoqda...</div></div>
 <script>
-(function(){window.addEventListener('error',function(e){try{fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':window.Telegram?.WebApp?.initData||''},body:JSON.stringify({level:'error',action:'window.error',message:e.message||'Client error',stack:e.error?.stack||'',page:location.pathname})})}catch(_){}});window.addEventListener('unhandledrejection',function(e){try{fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':window.Telegram?.WebApp?.initData||''},body:JSON.stringify({level:'error',action:'unhandledrejection',message:String(e.reason?.message||e.reason||'Unhandled rejection'),stack:e.reason?.stack||'',page:location.pathname})})}catch(_){}})})();
+(function(){
+  const sendClientError=(payload)=>{
+    try{
+      const tg=window.Telegram?.WebApp;
+      const body={...payload,level:payload.level||'error',url:location.href,page:location.pathname};
+      const p=fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':tg?.initData||''},body:JSON.stringify(body),keepalive:true});
+      if(p&&p.catch)p.catch(()=>{});
+    }catch(_){}
+  };
+  window.addEventListener('error',e=>sendClientError({action:'window.error',message:e.message||'Client error',stack:e.error?.stack||'',line:e.lineno||0,column:e.colno||0}));
+  window.addEventListener('unhandledrejection',e=>sendClientError({action:'unhandledrejection',message:String(e.reason?.message||e.reason||'Unhandled rejection'),stack:e.reason?.stack||''}));
+  window.RAMZ_REPORT_ERROR=(error,action='manual.error')=>sendClientError({action,message:error?.message||String(error||'Unknown error'),stack:error?.stack||''});
+})();
 </script>
 <script>
 const token=new URLSearchParams((location.hash||'').replace(/^#/,'' )).get('token')||'';

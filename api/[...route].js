@@ -1,4 +1,5 @@
 const path = require("path");
+const {error: auditError} = require("../lib/api/_audit");
 
 const routes = {
   "start": "./start",
@@ -34,6 +35,7 @@ module.exports = async function(req, res) {
     return await handler(req, res);
   } catch (e) {
     console.error(e);
+    try { await auditError({source:'api',action:'router.exception',error:e,meta:{path:req.url,method:req.method}}); } catch (_) {}
     return res.status(500).json({error:e.message || "Server error"});
   }
 };
