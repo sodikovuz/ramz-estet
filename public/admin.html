@@ -15,7 +15,30 @@ button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;cursor:poin
 @media(max-width:600px){.buttons{flex-direction:column}}
 </style>
 </head>
-<body><div class="wrap">
+<body><script>
+(function(){
+  const nativeError=console.error.bind(console), nativeWarn=console.warn.bind(console);
+  let sending=false;
+  function sendClientLog(payload){
+    if(sending) return;
+    sending=true;
+    try{
+      const body={...payload,level:payload.level||'error',url:location.href,page:location.pathname};
+      const json=JSON.stringify(body);
+      let sent=false;
+      try{ if(navigator.sendBeacon){ sent=navigator.sendBeacon('/api/client-log',new Blob([json],{type:'application/json'})); } }catch(_){}
+      if(!sent){ fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json'},body:json,keepalive:true}).then(r=>r.json()).then(x=>nativeError('[RAMZ LOG RESULT]',x)).catch(e=>nativeError('[RAMZ LOG SEND FAILED]',e)); }
+    }finally{ setTimeout(()=>{sending=false},50); }
+  }
+  window.addEventListener('error',e=>sendClientLog({action:'window.error',message:e.message||'Client error',stack:e.error?.stack||'',line:e.lineno||0,column:e.colno||0}));
+  window.addEventListener('unhandledrejection',e=>sendClientLog({action:'unhandledrejection',message:String(e.reason?.message||e.reason||'Unhandled rejection'),stack:e.reason?.stack||''}));
+  console.error=function(...args){ nativeError(...args); sendClientLog({action:'console.error',message:args.map(x=>{try{return typeof x==='string'?x:JSON.stringify(x)}catch(_){return String(x)}}).join(' ').slice(0,1200),stack:new Error().stack||''}); };
+  console.warn=function(...args){ nativeWarn(...args); sendClientLog({level:'warn',action:'console.warn',message:args.map(x=>String(x)).join(' ').slice(0,1200),stack:new Error().stack||''}); };
+  window.RAMZ_REPORT_ERROR=(error,action='manual.error')=>sendClientLog({action,message:error?.message||String(error||'Unknown error'),stack:error?.stack||''});
+  window.RAMZ_TEST_LOG=()=>{ console.error('RAMZ ESTET TEST ERROR'); };
+})();
+</script>
+<div class="wrap">
 <h1>RAMZ ESTET</h1><div class="muted">5-round realtime random demo</div>
 
 <div class="card">
