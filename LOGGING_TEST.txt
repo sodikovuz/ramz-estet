@@ -1,0 +1,15 @@
+RAMZ ESTET LOGGING TEST
+
+1. Deploy this ZIP.
+2. Open the Mini App in Telegram.
+3. In browser console run:
+   throw new Error("RAMZ ESTET TEST ERROR");
+4. The browser error handler POSTs to /api/client-log.
+5. For a deterministic server+Telegram test, POST /api/log-test using x-admin-secret
+   OR a valid Telegram initData belonging to an admin.
+6. /api/client-log response includes:
+   ok, requestId, stored, telegramSent, telegramError.
+
+Important:
+- Do not put BOT_TOKEN, ADMIN_SECRET, STARTAPP_SECRET or ABLY_API_KEY into client code.
+- Error logs redact common secret/token patterns.
