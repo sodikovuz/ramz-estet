@@ -12,6 +12,7 @@
     "@neondatabase/serverless": "^1.0.1",
     "ably": "^2.10.0",
     "sharp": "^0.34.3",
-    "dejavu-fonts-ttf": "^2.37.3"
+    "dejavu-fonts-ttf": "^2.37.3",
+    "fontkit": "^2.0.4"
   }
 }
