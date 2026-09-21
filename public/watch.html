@@ -18,13 +18,13 @@
 <div id="app"></div>
 <script>
 (function(){
-  const sendClientError=(payload)=>{
+  const sendClientError=(eventPayload)=>{
     try{
       const tg=window.Telegram?.WebApp;
-      const body={...payload,level:payload.level||'error',url:location.href,page:location.pathname};
-      const payload=JSON.stringify(body);
-      try{if(navigator.sendBeacon){const blob=new Blob([payload],{type:'application/json'});navigator.sendBeacon('/api/client-log',blob);}}catch(_){ }
-      const p=fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':tg?.initData||''},body:payload,keepalive:true});
+      const body={...eventPayload,level:eventPayload.level||'error',url:location.href,page:location.pathname};
+      const bodyJson=JSON.stringify(body);
+      try{if(navigator.sendBeacon){const blob=new Blob([bodyJson],{type:'application/json'});navigator.sendBeacon('/api/client-log',blob);}}catch(_){ }
+      const p=fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json','x-telegram-init-data':tg?.initData||''},body:bodyJson,keepalive:true});
       if(p&&p.catch)p.catch(()=>{});
     }catch(_){}
   };
