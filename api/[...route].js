@@ -20,7 +20,8 @@ const routes = {
   "finish-round": "./finish-round",
   "winner-status": "./winner-status",
   "client-log": "./client-log",
-  "log-test": "./log-test"
+  "log-test": "./log-test",
+  "test-winner-image": "./test-winner-image"
 };
 
 module.exports = async function(req, res) {
