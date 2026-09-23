@@ -10,6 +10,21 @@
 <div class="tabs"><button id="t-dashboard" class="tab active" onclick="tab('dashboard')">Dashboard</button><button id="t-giveaways" class="tab" onclick="tab('giveaways')">Barcha giveawaylar</button><button id="t-create" class="tab" onclick="tab('create')">Yaratish</button><button id="t-detail" class="tab" onclick="tab('detail')">Qatnashchilar / G‘oliblar</button><button id="t-settings" class="tab" onclick="tab('settings')">Admin Settings</button></div>
 <div id="app"><div class="card">Yuklanmoqda...</div></div></div><div id="toast" class="toast"></div>
 <script>
+const __clientLogState={last:new Map(),queue:[],sending:false};
+function __logKey(level,message){return String(level)+'|'+String(message).slice(0,500)}
+async function __sendClientLog(level,message,extra={}){
+  try{
+    const key=__logKey(level,message),now=Date.now(),prev=__clientLogState.last.get(key)||0;
+    if(now-prev<2000)return;
+    __clientLogState.last.set(key,now);
+    const payload={action:'admin.client.'+level,level,message:String(message||'').slice(0,1200),errorName:String(extra.name||extra.errorName||'ClientError').slice(0,100),stack:String(extra.stack||'').slice(0,9000),page:location.pathname,url:location.href.split('#')[0],line:Number(extra.line||0)||null,column:Number(extra.column||0)||null,viewport:window.innerWidth+'x'+window.innerHeight,online:navigator.onLine,telegramVersion:window.Telegram?.WebApp?.version||''};
+    await fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true});
+  }catch(e){try{console.error('[admin-client-log]',e)}catch(_){}}
+}
+window.addEventListener('error',e=>{__sendClientLog('error',e.message||'Unhandled window error',{name:e.error?.name||'WindowError',stack:e.error?.stack||'',line:e.lineno,column:e.colno})});
+window.addEventListener('unhandledrejection',e=>{const x=e.reason||{};__sendClientLog('error',x.message||String(x)||'Unhandled promise rejection',{name:x.name||'UnhandledRejection',stack:x.stack||''})});
+const __origConsoleError=console.error.bind(console);
+console.error=(...args)=>{__origConsoleError(...args);__sendClientLog('error',args.map(x=>x instanceof Error?(x.stack||x.message):typeof x==='string'?x:JSON.stringify(x)).join(' '))};
 const token=new URLSearchParams((location.hash||'').replace(/^#/,'')).get('token')||'';const H={'Content-Type':'application/json','x-panel-token':token};let S={tab:'dashboard',data:null,settings:null,selected:0};
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const L={bot_messages_enabled:['Bot xabarlarini tozalash','Bot xabarlarini avtomatik o‘chirish.'],user_messages_enabled:['Admin xabarlarini tozalash','Admin xabarlarini belgilangan vaqtdan keyin o‘chirish.'],duplicate_protection_enabled:['Duplicate protection','Takroriy Telegram update/callbacklarni himoyalash.'],auto_start_enabled:['Avtomatik start','Rejalashtirilgan giveawayni avtomatik ishga tushirish.'],auto_finish_enabled:['Avtomatik finish','Roundlar tugagach yakunlash.'],reminders_enabled:['Reminder tizimi','Giveaway oldidan eslatmalar.'],reminder_15m:['15 daqiqa reminder','15 daqiqa oldin.'],reminder_5m:['5 daqiqa reminder','5 daqiqa oldin.'],reminder_2m:['2 daqiqa reminder','2 daqiqa oldin.'],winner_announcement_enabled:['G‘olib announcement','G‘olib e’lonlarini yuborish.'],winner_image_enabled:['G‘olib image','G‘olib hujjat rasmi.'],winner_qr_enabled:['QR','Winner QR elementi.'],winner_signature_enabled:['Signature','Winner imzo elementi.'],winner_stamp_enabled:['Stamp','Winner muhr elementi.'],participant_realtime_enabled:['Participant realtime','Qatnashchilar realtime.'],viewer_realtime_enabled:['Viewer realtime','Tomoshabinlar realtime.'],audit_logging_enabled:['Audit log','Xatolar va muhim amallar.'],panel_single_message:['Single-message panel','Telegram panelini bitta xabarda boshqarish.'],cleanup_group_messages:['Guruh cleanup','Guruhdagi bot xabarlarini ham cleanup qilish.'],search_enabled:['Qidiruv','Qidiruv flagi.'],statistics_enabled:['Statistika','Statistika flagi.']};
