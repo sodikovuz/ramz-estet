@@ -12,3 +12,33 @@
 @media(max-width:1000px){.sidebar{width:210px}.main{margin-left:210px;width:calc(100% - 210px)}.header,.content{padding-left:22px;padding-right:22px}.stat-grid{grid-template-columns:repeat(2,1fr)}.settings-grid{grid-template-columns:1fr}.giveaway-layout{grid-template-columns:280px 1fr}.info-grid{grid-template-columns:repeat(2,1fr)}.table-row{grid-template-columns:1fr 120px 75px 20px}}
 @media(max-width:760px){.sidebar{position:fixed;width:100%;height:auto;inset:auto 0 0 0;border-right:0;border-top:1px solid #1e2633;padding:7px 8px;background:rgba(9,12,18,.97)}.sidebar .logo,.side-bottom{display:none}.sidebar nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.nav-item{justify-content:center;flex-direction:column;gap:2px;padding:8px 4px;border-radius:9px}.nav-item i{font-size:14px}.nav-item span{font-size:8px}.main{margin-left:0;width:100%;padding-bottom:65px}.header{height:72px;padding:0 15px}.header h1{font-size:17px}.content{padding:18px 14px 35px}.header-actions .live{display:none}.hero{padding:20px;display:block}.hero h2{font-size:22px}.hero-button{margin-top:15px}.stat-grid{gap:8px}.metric{padding:13px}.metric strong{font-size:23px}.giveaway-layout{grid-template-columns:1fr}.giveaway-list{max-height:300px}.detail-metrics{grid-template-columns:repeat(2,1fr)}.detail-metrics>div:nth-child(2){border-right:0}.detail-metrics>div{margin:4px 0}.search{width:100%}.toolbar{display:grid;gap:10px;align-items:stretch}.table-row{grid-template-columns:1fr auto}.table-row .count,.table-row .arrow{display:none}.table-row .status{justify-self:end}.form-grid{grid-template-columns:1fr}.form-footer{display:grid}.settings-head{display:grid;gap:10px}.alert{margin-left:14px;margin-right:14px}.detail-top{display:block}.detail-id{margin-top:10px}.action-bar{display:grid}.action-buttons{width:100%}.action-buttons .btn{flex:1}}
 @media(max-width:430px){.stat-grid{grid-template-columns:1fr 1fr}.metric span{font-size:9px}.metric strong{font-size:20px}.metric small{font-size:8px}.header .refresh span{display:none}.hero h2{font-size:20px}.info-grid{grid-template-columns:1fr}.person time{display:none}.form-card,.detail-card{padding:14px}}
+
+
+/* Telegram group management */
+.group-check-list{display:grid;gap:10px;margin-top:14px}
+.group-check-list.compact{max-height:310px;overflow:auto;padding:2px}
+.group-check{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line,#242938);background:rgba(255,255,255,.02);border-radius:14px;cursor:pointer}
+.group-check:hover{border-color:rgba(130,120,255,.45);background:rgba(130,120,255,.05)}
+.group-check input{width:18px;height:18px;accent-color:#8b7cff}
+.group-check>span:nth-of-type(2){min-width:0;display:flex;flex-direction:column;gap:3px;flex:1}
+.group-check b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.group-check small{color:var(--muted,#8b92a7);font-size:11px}
+.group-check em{font-style:normal;font-size:9px;letter-spacing:.08em;color:#79e2a3}
+.group-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(139,124,255,.12);color:#a99fff;flex:none}
+.group-icon.large{width:44px;height:44px;font-size:20px}
+.group-hint{padding:16px;border:1px dashed var(--line,#242938);border-radius:14px;color:var(--muted,#8b92a7);font-size:13px}
+.group-create-field{margin-top:22px}
+.group-add-card{padding:22px}
+.group-add-card h3{margin:0 0 6px}
+.group-add-card p{margin:0;color:var(--muted,#8b92a7);font-size:13px;line-height:1.55}
+.group-add-form{display:flex;gap:10px;margin-top:18px}
+.group-add-form input{flex:1;min-width:0}
+.group-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+.group-card{padding:20px}
+.group-card-top{display:flex;justify-content:space-between;align-items:center}
+.group-card h3{margin:16px 0 6px;font-size:17px}
+.group-card p{margin:0;color:var(--muted,#8b92a7);font-size:12px;word-break:break-word}
+.group-capabilities{display:flex;gap:8px;margin-top:16px}
+.group-capabilities span{font-size:11px;padding:6px 9px;border-radius:8px;background:rgba(255,255,255,.04);color:var(--muted,#8b92a7)}
+.group-actions{display:flex;gap:8px;margin-top:18px}
+.group-actions .btn{flex:1}
