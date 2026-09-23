@@ -6,7 +6,8 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "vercel dev",
+    "build": "node scripts/version-assets.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
