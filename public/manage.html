@@ -31,7 +31,7 @@ h1,h2,h3{margin:0 0 8px}.big{font-size:32px;font-weight:950}.pill{display:inline
     <button id="tab-overview" class="tab active" onclick="showTab('overview')">Umumiy</button>
     <button id="tab-participants" class="tab" onclick="showTab('participants')">Qatnashchilar</button>
     <button id="tab-winners" class="tab" onclick="showTab('winners')">G‘oliblar</button>
-    <button id="tab-settings" class="tab" onclick="showTab('settings')">Admin Settings</button>
+    <button id="tab-settings" class="tab" onclick="showTab('settings')">Admin Settings</button><button id="tab-telegram" class="tab" onclick="openTelegramAdmin()">Telegram Admin</button>
   </div>
   <div id="app"><div class="card">Yuklanmoqda...</div></div>
 </div>
@@ -79,6 +79,12 @@ const labels={
 };
 function toast(msg,good=true){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(good?'good':'bad');clearTimeout(window._toast);window._toast=setTimeout(()=>t.className='toast',2600)}
 async function api(url,opts={}){const r=await fetch(url,{...opts,headers:{...headers,...(opts.headers||{})},cache:'no-store'});let d={};try{d=await r.json()}catch(_){}if(r.status===401){toast('Panel sessiyasi tugagan. Telegramdan yangi panelni oching.',false);throw new Error(d.error||'Unauthorized')}if(!r.ok)throw new Error(d.error||'Xatolik');return d}
+function openTelegramAdmin(){
+ const url=new URL(location.href);
+ const token=url.hash||'';
+ const mini='https://t.me/ramzestetbot/giveaway'+(token?'#'+token.replace(/^#/,''):'');
+ window.open(mini,'_blank','noopener,noreferrer');
+}
 function showTab(tab){state.tab=tab;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+tab)?.classList.add('active');render()}
 function render(){if(!state.data)return;const d=state.data,g=d.giveaway;let html='';if(state.tab==='overview')html=overview(g,d);if(state.tab==='participants')html=participants(d);if(state.tab==='winners')html=winners(d);if(state.tab==='settings')html=settings(state.settings);document.getElementById('app').innerHTML=html}
 function overview(g,d){return '<div class="grid">'+
