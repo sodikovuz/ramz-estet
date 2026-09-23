@@ -409,10 +409,11 @@ function GroupPicker({ giveawayId, groups, selectedGroups, onSave, onPost }) {
 function Mini({ label, value }) { return <div><span>{label}</span><b>{value ?? "—"}</b></div>; }
 function Info({ label, value }) { return <div><span>{label}</span><b>{value}</b></div>; }
 
-function CreateGiveaway({ onCreated }) {
-  const [form, setForm] = useState({ title: "", description: "", total_rounds: 1, start_at: "" });
+function CreateGiveaway({ groups, onCreated }) {
+  const [form, setForm] = useState({ title: "", description: "", total_rounds: 1, start_at: "", chat_ids: [] });
   const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const set = (key, value) => setForm(old => ({ ...old, [key]: value }));
+  const toggleGroup = id => setForm(old => ({ ...old, chat_ids: old.chat_ids.includes(id) ? old.chat_ids.filter(x => x !== id) : [...old.chat_ids, id] }));
   async function submit(e) {
     e.preventDefault(); setBusy(true); setError("");
     try {
@@ -422,7 +423,7 @@ function CreateGiveaway({ onCreated }) {
   }
   return (
     <div className="create-page">
-      <div className="form-intro"><span className="hero-kicker">YANGI KAMPANIYA</span><h2>Giveaway yarating</h2><p>Ma'lumotlarni kiriting. Yaratilgach giveaway rejalashtirilgan holatda turadi.</p></div>
+      <div className="form-intro"><span className="hero-kicker">YANGI KAMPANIYA</span><h2>Giveaway yarating</h2><p>Ma'lumotlarni kiriting va kerakli Telegram guruhlarini biriktiring.</p></div>
       <form className="card form-card" onSubmit={submit}>
         {error && <div className="alert error"><b>⚠</b>{error}</div>}
         <Field label="Giveaway nomi" hint="Telegramda ko‘rinadigan nom"><input value={form.title} onChange={e => set("title", e.target.value)} maxLength={160} placeholder="Masalan: RAMZ ESTET — Yangi yil" required /></Field>
@@ -431,12 +432,79 @@ function CreateGiveaway({ onCreated }) {
           <Field label="G‘oliblar soni" hint="1–100"><input type="number" min="1" max="100" value={form.total_rounds} onChange={e => set("total_rounds", e.target.value)} required /></Field>
           <Field label="Boshlanish vaqti" hint="Toshkent vaqti"><input type="datetime-local" value={form.start_at} onChange={e => set("start_at", e.target.value)} required /></Field>
         </div>
-        <div className="form-footer"><span>Keyin giveawaylar bo‘limidan boshqarishingiz mumkin.</span><button className="btn primary large" disabled={busy}>{busy ? "Yaratilmoqda..." : "✓ Giveaway yaratish"}</button></div>
+        <div className="field group-create-field">
+          <span><b>Giveaway guruhlari</b><small>Post yuboriladigan guruhlar. Ixtiyoriy — keyin ham tanlash mumkin.</small></span>
+          <div className="group-check-list compact">
+            {groups.map(g => (
+              <label className="group-check" key={String(g.chat_id)}>
+                <input type="checkbox" checked={form.chat_ids.includes(Number(g.chat_id))} onChange={() => toggleGroup(Number(g.chat_id))} />
+                <span className="group-icon">▦</span>
+                <span><b>{g.title}</b><small>{g.username ? "@" + g.username + " · " : ""}{g.chat_id}</small></span>
+              </label>
+            ))}
+            {!groups.length && <div className="group-hint">Hali guruh qo‘shilmagan. Giveawayni avval yaratib, keyin Guruhlar bo‘limidan qo‘shishingiz mumkin.</div>}
+          </div>
+        </div>
+        <div className="form-footer"><span>{form.chat_ids.length ? form.chat_ids.length + " ta guruh tanlandi." : "Guruh tanlanmadi."}</span><button className="btn primary large" disabled={busy}>{busy ? "Yaratilmoqda..." : "✓ Giveaway yaratish"}</button></div>
       </form>
     </div>
   );
 }
 function Field({ label, hint, children }) { return <label className="field"><span><b>{label}</b><small>{hint}</small></span>{children}</label>; }
+
+
+function GroupManager({ groups, onChanged }) {
+  const [chatId, setChatId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [localError, setLocalError] = useState("");
+  async function addGroup(e) {
+    e.preventDefault(); setBusy(true); setLocalError("");
+    try {
+      await api("/api/groups", { method: "POST", body: JSON.stringify({ action: "add", chat_id: chatId.trim() }) });
+      setChatId(""); onChanged();
+    } catch (e) { setLocalError(e.message); }
+    finally { setBusy(false); }
+  }
+  async function refresh(id) {
+    setBusy(true); setLocalError("");
+    try { await api("/api/groups", { method: "POST", body: JSON.stringify({ action: "refresh", chat_id: String(id) }) }); onChanged(); }
+    catch (e) { setLocalError(e.message); } finally { setBusy(false); }
+  }
+  async function remove(id) {
+    if (!window.confirm("Bu guruh paneldan olib tashlansinmi? Telegram guruhidan bot chiqarilmaydi.")) return;
+    setBusy(true); setLocalError("");
+    try { await api("/api/groups", { method: "POST", body: JSON.stringify({ action: "remove", chat_id: String(id) }) }); onChanged(); }
+    catch (e) { setLocalError(e.message); } finally { setBusy(false); }
+  }
+  return (
+    <div className="groups-page">
+      <div className="settings-head">
+        <div><span className="hero-kicker">TELEGRAM</span><h2>Guruhlar boshqaruvi</h2><p>Bot administrator bo‘lgan guruhlarni qo‘shing, tekshiring va giveawaylarga biriktiring.</p></div>
+        <span className="settings-ok">{groups.length} ta guruh</span>
+      </div>
+      <div className="card group-add-card">
+        <div><h3>Yangi guruh qo‘shish</h3><p>Guruh IDsi (<code>-100...</code>) yoki public <code>@username</code> kiriting. Bot guruhda administrator bo‘lishi kerak.</p></div>
+        <form className="group-add-form" onSubmit={addGroup}>
+          <input value={chatId} onChange={e => setChatId(e.target.value)} placeholder="-1001234567890 yoki @guruh" required />
+          <button className="btn primary" disabled={busy}>{busy ? "Tekshirilmoqda..." : "＋ Guruh qo‘shish"}</button>
+        </form>
+        {localError && <div className="alert error"><b>⚠</b>{localError}</div>}
+      </div>
+      <div className="group-grid">
+        {groups.map(g => (
+          <div className="card group-card" key={String(g.chat_id)}>
+            <div className="group-card-top"><span className="group-icon large">▦</span><span className="status green">{g.bot_status === "administrator" || g.bot_status === "creator" ? "BOT ADMIN" : "TEKSHIRISH"}</span></div>
+            <h3>{g.title}</h3>
+            <p>{g.username ? "@" + g.username : "Private group"} · {g.chat_id}</p>
+            <div className="group-capabilities"><span>Post: {g.can_post_messages ? "✓" : "×"}</span><span>Delete: {g.can_delete_messages ? "✓" : "×"}</span></div>
+            <div className="group-actions"><button className="btn" onClick={() => refresh(g.chat_id)} disabled={busy}>↻ Tekshirish</button><button className="btn danger" onClick={() => remove(g.chat_id)} disabled={busy}>× Olib tashlash</button></div>
+          </div>
+        ))}
+        {!groups.length && <div className="card detail-empty"><div className="empty-icon">▦</div><h3>Guruh yo‘q</h3><p>Botni guruhga administrator qilib qo‘shing, keyin shu yerga guruh ID yoki @username kiriting.</p></div>}
+      </div>
+    </div>
+  );
+}
 
 const boolGroups = [
   ["Bot va chat", ["bot_messages_enabled","user_messages_enabled","duplicate_protection_enabled","cleanup_group_messages"]],
