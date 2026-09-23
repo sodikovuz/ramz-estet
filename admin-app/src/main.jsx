@@ -294,7 +294,7 @@ function Dashboard({ data, onSelect }) {
   );
 }
 
-function Giveaways({ data, items, search, setSearch, selected, current, onSelect, onAction }) {
+function Giveaways({ data, items, search, setSearch, selected, current, onSelect, onAction, groups, selectedGroups, onAssignGroups, onPost }) {
   return (
     <>
       <div className="toolbar">
@@ -312,19 +312,19 @@ function Giveaways({ data, items, search, setSearch, selected, current, onSelect
           ))}
           {!items.length && <Empty text="Qidiruv bo‘yicha giveaway topilmadi." />}
         </div>
-        <GiveawayDetail current={current} detail={data?.detail} onAction={onAction} />
+        <GiveawayDetail current={current} detail={data?.detail} onAction={onAction} groups={groups} selectedGroups={selectedGroups} onAssignGroups={onAssignGroups} onPost={onPost} />
       </div>
     </>
   );
 }
 
-function GiveawayDetail({ current, detail, onAction }) {
+function GiveawayDetail({ current, detail, onAction, groups, selectedGroups, onAssignGroups, onPost }) {
   if (!current) return <div className="card detail-empty"><div className="empty-icon">◉</div><h3>Giveaway tanlang</h3><p>Chap tomondagi ro‘yxatdan giveawayni tanlang.</p></div>;
   return (
     <div className="detail">
       <div className="card detail-card">
         <div className="detail-top">
-          <div><span className={`status ${statusTone(current.status)}`}>{statusLabel(current.status)}</span><h2>{current.title}</h2><p>{current.description || "Tavsif kiritilmagan."}</p></div>
+          <div><span className={"status " + statusTone(current.status)}>{statusLabel(current.status)}</span><h2>{current.title}</h2><p>{current.description || "Tavsif kiritilmagan."}</p></div>
           <div className="detail-id">ID #{current.id}</div>
         </div>
         <div className="detail-metrics">
@@ -347,6 +347,15 @@ function GiveawayDetail({ current, detail, onAction }) {
           </div>
         </div>
       </div>
+
+      <GroupPicker
+        giveawayId={current.id}
+        groups={groups}
+        selectedGroups={selectedGroups}
+        onSave={onAssignGroups}
+        onPost={() => onPost(current.id)}
+      />
+
       <div className="card detail-card">
         <div className="card-title"><div><h3>Qatnashchilar</h3><p>Ushbu giveawayga tegishli foydalanuvchilar</p></div><b className="pill">{detail?.participants?.length || 0}</b></div>
         <div className="scroll-list participants">
@@ -359,6 +368,38 @@ function GiveawayDetail({ current, detail, onAction }) {
         <div className="scroll-list winners">
           {(detail?.winners || []).map(w => <div className="person" key={String(w.round)}><span className="winner-badge">#{w.round}</span><span><b>{w.username ? "@" + w.username : w.first_name || w.user_id}</b><small>{w.winner_label || "G‘olib"} · ID {w.user_id}</small></span><time>{fmtDate(w.won_at)}</time></div>)}
           {!detail?.winners?.length && <Empty text="Hali g‘oliblar yo‘q." />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GroupPicker({ giveawayId, groups, selectedGroups, onSave, onPost }) {
+  const [picked, setPicked] = useState(selectedGroups || []);
+  useEffect(() => setPicked(selectedGroups || []), [selectedGroups]);
+  const toggle = id => setPicked(old => old.includes(id) ? old.filter(x => x !== id) : [...old, id]);
+  return (
+    <div className="card detail-card">
+      <div className="card-title">
+        <div><h3>Telegram guruhlari</h3><p>Giveaway postini qaysi guruhlarga yuborishni tanlang.</p></div>
+        <b className="pill">{picked.length}</b>
+      </div>
+      <div className="group-check-list">
+        {groups.map(g => (
+          <label className="group-check" key={String(g.chat_id)}>
+            <input type="checkbox" checked={picked.includes(Number(g.chat_id))} onChange={() => toggle(Number(g.chat_id))} />
+            <span className="group-icon">▦</span>
+            <span><b>{g.title}</b><small>{g.username ? "@" + g.username + " · " : ""}{g.chat_id}</small></span>
+            <em>{g.bot_status === "administrator" || g.bot_status === "creator" ? "BOT ADMIN" : "Tekshirish kerak"}</em>
+          </label>
+        ))}
+        {!groups.length && <Empty text="Hali guruh qo‘shilmagan. Avval “Guruhlar” bo‘limidan guruh qo‘shing." />}
+      </div>
+      <div className="action-bar">
+        <div><b>Post boshqaruvi</b><small>Tanlangan guruhlarga giveaway postini yuborish mumkin.</small></div>
+        <div className="action-buttons">
+          <button className="btn" onClick={() => onSave(giveawayId, picked)}>💾 Saqlash</button>
+          <button className="btn primary" disabled={!picked.length} onClick={onPost}>📣 Guruhlarga yuborish</button>
         </div>
       </div>
     </div>
