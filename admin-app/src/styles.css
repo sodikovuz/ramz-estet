@@ -31,6 +31,10 @@
 .group-add-card{padding:22px}
 .group-add-card h3{margin:0 0 6px}
 .group-add-card p{margin:0;color:var(--muted,#8b92a7);font-size:13px;line-height:1.55}
+.group-link-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.group-link-actions .btn{flex:1;min-width:210px;text-align:center;text-decoration:none}
+.group-add-divider{display:flex;align-items:center;gap:10px;margin:18px 0 0;color:var(--muted,#8b92a7);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.group-add-divider:before,.group-add-divider:after{content:"";height:1px;background:rgba(255,255,255,.08);flex:1}
 .group-add-form{display:flex;gap:10px;margin-top:18px}
 .group-add-form input{flex:1;min-width:0}
 .group-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
