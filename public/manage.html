@@ -1,49 +1,109 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="uz">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
 <title>RAMZ ESTET — Boshqaruv</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#070707;color:#fff;font-family:Inter,Arial,sans-serif}
-.wrap{width:min(1100px,94vw);margin:auto;padding:24px 0 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px}
-.brand{font-size:30px;font-weight:950;letter-spacing:3px}.muted{color:#888}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:18px}
-.card{background:#111;border:1px solid #fff1;border-radius:18px;padding:18px;box-shadow:0 10px 35px #0008}
-h1,h2{margin:0 0 8px}.big{font-size:34px;font-weight:950}.pill{display:inline-block;padding:7px 10px;border-radius:999px;background:#211;color:#f55;border:1px solid #522}
-.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}.stat div{background:#0a0a0a;border:1px solid #fff1;border-radius:14px;padding:13px}.num{font-size:25px;font-weight:900}.label{color:#888;font-size:12px}
-button{border:0;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer;margin:5px 5px 0 0}.start{background:#e22;color:#fff}.close{background:#222;color:#fff}.refresh{background:#ddd;color:#111}
-.list{max-height:420px;overflow:auto}.row{padding:11px 0;border-bottom:1px solid #fff1}.time{color:#777;font-size:12px}.winner{font-weight:900}
-img.poster{width:100%;max-height:320px;object-fit:cover;border-radius:14px;margin-top:12px}
-@media(max-width:760px){.grid{grid-template-columns:1fr}.stat{grid-template-columns:1fr 1fr 1fr}.top{align-items:flex-start;flex-direction:column}}
-</style></head>
-<body><div class="wrap">
-<div class="top"><div><div class="brand">RAMZ ESTET</div><div class="muted">Giveaway boshqaruv paneli</div></div><button class="refresh" onclick="load()">↻ Yangilash</button></div>
-<div id="app" class="grid"><div class="card">Yuklanmoqda...</div></div>
+:root{--bg:#07090c;--panel:#10141a;--panel2:#0c1015;--line:#ffffff12;--text:#f5f7fa;--muted:#8e98a7;--accent:#d7b45a;--good:#45d483;--bad:#ff6574;--blue:#6ea8ff}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:radial-gradient(circle at 20% 0,#1b1710 0,#07090c 38%),var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select{font:inherit}.wrap{width:min(1180px,94vw);margin:auto;padding:22px 0 55px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:18px}.brand{font-size:25px;font-weight:950;letter-spacing:2.5px}.muted{color:var(--muted)}.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#171c23;color:#fff;border-radius:11px;padding:10px 14px;font-weight:800;cursor:pointer}.btn:hover{border-color:#ffffff28;background:#1c222b}.btn.gold{background:var(--accent);color:#080808;border-color:transparent}.btn.danger{background:#291216;color:#ff9ba5}.btn:disabled{opacity:.5;cursor:not-allowed}
+.tabs{display:flex;gap:7px;overflow:auto;padding:5px;background:#0b0e13;border:1px solid var(--line);border-radius:14px;margin-bottom:15px}.tab{white-space:nowrap;border:0;background:transparent;color:var(--muted);padding:10px 14px;border-radius:10px;font-weight:850;cursor:pointer}.tab.active{background:#191e26;color:#fff}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.card{background:linear-gradient(180deg,#11161d,#0d1116);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 12px 40px #0007}.full{grid-column:1/-1}
+h1,h2,h3{margin:0 0 8px}.big{font-size:32px;font-weight:950}.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:#181d24;border:1px solid var(--line);color:#dce2ea;font-size:12px;font-weight:850}.pill.good{color:#86e8ae}.pill.bad{color:#ff9ca7}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}.stat>div{background:#090c10;border:1px solid var(--line);border-radius:13px;padding:12px}.num{font-size:23px;font-weight:950}.label{color:var(--muted);font-size:11px;margin-top:2px}.list{max-height:430px;overflow:auto}.row{padding:11px 0;border-bottom:1px solid var(--line)}.time{color:var(--muted);font-size:12px;margin-top:3px}.winner{font-weight:900}img.poster{width:100%;max-height:320px;object-fit:cover;border-radius:14px;margin-top:12px}
+.settings-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:16px}.settings-head p{margin:4px 0 0;color:var(--muted);line-height:1.5}.section{margin-top:14px}.section-title{display:flex;justify-content:space-between;align-items:center;padding:3px 2px 9px}.section-title b{font-size:12px;letter-spacing:1.2px;color:#b9c1cc}.section-title span{font-size:11px;color:var(--muted)}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.setting{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:14px;background:var(--panel2);border:1px solid var(--line);border-radius:14px}.setting-main{min-width:0}.setting-name{font-weight:850}.setting-desc{font-size:12px;color:var(--muted);line-height:1.4;margin-top:4px}.control{flex:0 0 auto;display:flex;align-items:center;gap:7px}.switch{position:relative;width:46px;height:26px}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;background:#272d36;border:1px solid #ffffff16;border-radius:30px;cursor:pointer}.slider:before{content:"";position:absolute;width:20px;height:20px;left:2px;top:2px;background:#a9b0ba;border-radius:50%;transition:.18s}.switch input:checked+.slider{background:#876f2e;border-color:#bda35b}.switch input:checked+.slider:before{transform:translateX(20px);background:#fff}
+.select{background:#171c23;color:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 9px;min-width:105px}.setting.wide{grid-column:1/-1}.danger-card{border-color:#ff657433;background:#160d10}.info{background:#0b1118;border:1px solid #6ea8ff1c;border-radius:12px;padding:11px 12px;color:#aebbd0;line-height:1.5;margin-top:12px}.footer-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:15px}.save-state{font-size:12px;color:var(--muted)}.toast{position:fixed;right:18px;bottom:18px;max-width:340px;background:#171d25;border:1px solid var(--line);padding:12px 14px;border-radius:12px;box-shadow:0 12px 35px #0008;display:none}.toast.show{display:block}.toast.good{border-color:#45d48355}.toast.bad{border-color:#ff657455}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+@media(max-width:800px){.grid,.settings-grid{grid-template-columns:1fr}.full,.setting.wide{grid-column:auto}.top{align-items:flex-start;flex-direction:column}.stat{grid-template-columns:repeat(3,1fr)}.setting{padding:12px}.settings-head{flex-direction:column}}
+@media(max-width:470px){.stat{grid-template-columns:1fr}.wrap{width:92vw}.setting{align-items:flex-start}.control{margin-top:2px}.top-actions{width:100%}.top-actions .btn{flex:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><div class="brand">RAMZ ESTET</div><div class="muted">Xavfsiz giveaway boshqaruv paneli</div></div>
+    <div class="top-actions"><button class="btn" onclick="load()">Yangilash</button><button class="btn" onclick="showTab('settings')">Admin Settings</button></div>
+  </div>
+  <div class="tabs">
+    <button id="tab-overview" class="tab active" onclick="showTab('overview')">Umumiy</button>
+    <button id="tab-participants" class="tab" onclick="showTab('participants')">Qatnashchilar</button>
+    <button id="tab-winners" class="tab" onclick="showTab('winners')">G‘oliblar</button>
+    <button id="tab-settings" class="tab" onclick="showTab('settings')">Admin Settings</button>
+  </div>
+  <div id="app"><div class="card">Yuklanmoqda...</div></div>
+</div>
+<div id="toast" class="toast"></div>
+
 <script>
 (function(){
-  const nativeError=console.error.bind(console), nativeWarn=console.warn.bind(console);
-  let sending=false;
-  function sendClientLog(payload){
-    if(sending) return;
-    sending=true;
-    try{
-      const body={...payload,level:payload.level||'error',url:location.href,page:location.pathname};
-      const json=JSON.stringify(body);
-      let sent=false;
-      try{ if(navigator.sendBeacon){ sent=navigator.sendBeacon('/api/client-log',new Blob([json],{type:'application/json'})); } }catch(_){}
-      if(!sent){ fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json'},body:json,keepalive:true}).then(r=>r.json()).then(x=>nativeError('[RAMZ LOG RESULT]',x)).catch(e=>nativeError('[RAMZ LOG SEND FAILED]',e)); }
-    }finally{ setTimeout(()=>{sending=false},50); }
-  }
-  window.addEventListener('error',e=>sendClientLog({action:'window.error',message:e.message||'Client error',stack:e.error?.stack||'',line:e.lineno||0,column:e.colno||0}));
-  window.addEventListener('unhandledrejection',e=>sendClientLog({action:'unhandledrejection',message:String(e.reason?.message||e.reason||'Unhandled rejection'),stack:e.reason?.stack||''}));
-  console.error=function(...args){ nativeError(...args); sendClientLog({action:'console.error',message:args.map(x=>{try{return typeof x==='string'?x:JSON.stringify(x)}catch(_){return String(x)}}).join(' ').slice(0,1200),stack:new Error().stack||''}); };
-  console.warn=function(...args){ nativeWarn(...args); sendClientLog({level:'warn',action:'console.warn',message:args.map(x=>String(x)).join(' ').slice(0,1200),stack:new Error().stack||''}); };
-  window.RAMZ_REPORT_ERROR=(error,action='manual.error')=>sendClientLog({action,message:error?.message||String(error||'Unknown error'),stack:error?.stack||''});
-  window.RAMZ_TEST_LOG=()=>{ console.error('RAMZ ESTET TEST ERROR'); };
+ const nativeError=console.error.bind(console),nativeWarn=console.warn.bind(console);let sending=false;
+ function sendClientLog(payload){if(sending)return;sending=true;try{const body={...payload,level:payload.level||'error',url:location.href,page:location.pathname};const json=JSON.stringify(body);let sent=false;try{if(navigator.sendBeacon)sent=navigator.sendBeacon('/api/client-log',new Blob([json],{type:'application/json'}))}catch(_){}if(!sent)fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json'},body:json,keepalive:true}).catch(e=>nativeError('[LOG]',e))}finally{setTimeout(()=>sending=false,50)}}
+ window.addEventListener('error',e=>sendClientLog({action:'window.error',message:e.message||'Client error',stack:e.error?.stack||'',line:e.lineno||0,column:e.colno||0}));
+ window.addEventListener('unhandledrejection',e=>sendClientLog({action:'unhandledrejection',message:String(e.reason?.message||e.reason||'Unhandled rejection'),stack:e.reason?.stack||''}));
+ console.error=function(...a){nativeError(...a);sendClientLog({action:'console.error',message:a.map(x=>{try{return typeof x==='string'?x:JSON.stringify(x)}catch(_){return String(x)}}).join(' ').slice(0,1200),stack:new Error().stack||''})};
+ console.warn=function(...a){nativeWarn(...a);sendClientLog({level:'warn',action:'console.warn',message:a.map(String).join(' ').slice(0,1200),stack:new Error().stack||''})};
+ window.RAMZ_REPORT_ERROR=(e,a='manual.error')=>sendClientLog({action:a,message:e?.message||String(e||'Unknown error'),stack:e?.stack||''});
 })();
 </script>
 <script>
-const token=new URLSearchParams((location.hash||'').replace(/^#/,'' )).get('token')||'';
+const token=new URLSearchParams((location.hash||'').replace(/^#/,'')).get('token')||'';
 const headers={'Content-Type':'application/json','x-panel-token':token};
-const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":'&#39;'}[m]));
-async function action(a){const r=await fetch('/api/giveaway',{method:'POST',headers,body:JSON.stringify({action:a})});const d=await r.json();if(!r.ok)alert(d.error||'Xatolik');else load()}
-async function load(){if(!token){document.getElementById('app').innerHTML='<div class="card">Himoyalangan panel havolasi kerak.</div>';return}const r=await fetch('/api/giveaway',{headers:{'x-panel-token':token},cache:'no-store'});const d=await r.json();if(!r.ok){document.getElementById('app').innerHTML=`<div class="card">${esc(d.error)}</div>`;return}const g=d.giveaway;const ps=d.participants.map((x,i)=>`<div class="row">${i+1}. <b>${esc(x.username?'@'+x.username:x.first_name||'Ishtirokchi')}</b><div class="time">${new Date(x.joined_at).toLocaleString('uz-UZ')}</div></div>`).join('')||'<div class="muted">Hali qatnashchi yo‘q.</div>';const ws=d.winners.map(x=>`<div class="row"><div class="winner">🏆 #${x.round} — ${esc(x.winner_label)}</div><div class="time">${new Date(x.won_at).toLocaleString('uz-UZ')}</div></div>`).join('')||'<div class="muted">Hali g‘olib yo‘q.</div>';document.getElementById('app').innerHTML=`<div class="card"><div class="muted">RAMZ ESTET</div><h1>${esc(g.title)}</h1><p>${esc(g.description)}</p><span class="pill">${esc(g.status)}</span><div class="stat"><div><div class="num">${d.participants.length}</div><div class="label">QATNASHCHI</div></div><div><div class="num">${g.total_rounds}</div><div class="label">G‘OLIB</div></div><div><div class="num">${d.winners.length}</div><div class="label">ANIQLANGAN</div></div></div><div style="margin-top:14px">${!['finished','closed'].includes(String(g.status))?'<button class="start" onclick="action(\"start\")">▶ GIVEAWAYNI BOSHLASH</button><button class="close" onclick="action(\"close\")">🔒 YOPISH</button>':''}</div></div><div class="card"><h2>🏆 Natijalar</h2><div class="list">${ws}</div></div><div class="card"><h2>👥 Qatnashchilar</h2><div class="list">${ps}</div></div><div class="card"><h2>ℹ️ Ma’lumot</h2><p class="muted">Yaratilgan: ${new Date(g.created_at).toLocaleString('uz-UZ')}</p><p class="muted">Boshlangan: ${g.started_at?new Date(g.started_at).toLocaleString('uz-UZ'):'—'}</p><p class="muted">Tugagan: ${g.finished_at?new Date(g.finished_at).toLocaleString('uz-UZ'):'—'}</p></div>`}
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let state={data:null,settings:null,tab:'overview'};
+const boolKeys=['bot_messages_enabled','user_messages_enabled','duplicate_protection_enabled','auto_start_enabled','auto_finish_enabled','reminders_enabled','reminder_15m','reminder_5m','reminder_2m','winner_announcement_enabled','winner_image_enabled','winner_qr_enabled','winner_signature_enabled','winner_stamp_enabled','participant_realtime_enabled','viewer_realtime_enabled','audit_logging_enabled','panel_single_message','cleanup_group_messages','search_enabled','statistics_enabled'];
+const labels={
+ bot_messages_enabled:['Bot xabarlarini tozalash','Bot yuborgan shaxsiy chat xabarlarini avtomatik o‘chirish.'],
+ user_messages_enabled:['Admin xabarlarini tozalash','Admin yuborgan xabarlarni belgilangan vaqtdan keyin o‘chirish.'],
+ duplicate_protection_enabled:['Duplicate protection','Telegram callback/update takrorlanishini himoyalash.'],
+ auto_start_enabled:['Avtomatik start','Vaqti kelgan rejalashtirilgan giveawayni avtomatik ishga tushirish.'],
+ auto_finish_enabled:['Avtomatik finish','Giveaway roundlari tugagach yakunlash jarayonini boshqarish.'],
+ reminders_enabled:['Reminder tizimi','Giveaway oldidan eslatmalarni umumiy yoqish/o‘chirish.'],
+ reminder_15m:['15 daqiqalik reminder','Boshlanishdan 15 daqiqa oldin eslatma.'],
+ reminder_5m:['5 daqiqalik reminder','Boshlanishdan 5 daqiqa oldin eslatma.'],
+ reminder_2m:['2 daqiqalik reminder','Boshlanishdan 2 daqiqa oldin eslatma.'],
+ winner_announcement_enabled:['G‘olib announcement','G‘olib aniqlanganda e’lon yuborish.'],
+ winner_image_enabled:['G‘olib image','Yakuniy g‘oliblar uchun rasm yuborish.'],
+ winner_qr_enabled:['QR','Winner hujjat rasmining QR qismi.'],
+ winner_signature_enabled:['Signature','Winner hujjatidagi imzo elementi.'],
+ winner_stamp_enabled:['Stamp','Winner hujjatidagi muhr elementi.'],
+ participant_realtime_enabled:['Participant realtime','Ishtirokchilar ro‘yxatini realtime yangilash.'],
+ viewer_realtime_enabled:['Viewer realtime','Tomoshabinlar sonini realtime yangilash.'],
+ audit_logging_enabled:['Audit log','Muhim xatolar va boshqaruv amallarini audit qilish.'],
+ panel_single_message:['Single-message panel','Botdagi admin panelni bitta xabarni tahrirlash orqali boshqarish.'],
+ cleanup_group_messages:['Guruh xabarlarini tozalash','Guruhdagi bot xabarlarini ham cleanup tizimiga kiritish.'],
+ search_enabled:['Qidiruv','Admin paneldagi qidiruv funksiyalari uchun flag.'],
+ statistics_enabled:['Statistika','Statistika va hisoblagichlarni yoqish.']
+};
+function toast(msg,good=true){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(good?'good':'bad');clearTimeout(window._toast);window._toast=setTimeout(()=>t.className='toast',2600)}
+async function api(url,opts={}){const r=await fetch(url,{...opts,headers:{...headers,...(opts.headers||{})},cache:'no-store'});let d={};try{d=await r.json()}catch(_){}if(r.status===401){toast('Panel sessiyasi tugagan. Telegramdan yangi panelni oching.',false);throw new Error(d.error||'Unauthorized')}if(!r.ok)throw new Error(d.error||'Xatolik');return d}
+function showTab(tab){state.tab=tab;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+tab)?.classList.add('active');render()}
+function render(){if(!state.data)return;const d=state.data,g=d.giveaway;let html='';if(state.tab==='overview')html=overview(g,d);if(state.tab==='participants')html=participants(d);if(state.tab==='winners')html=winners(d);if(state.tab==='settings')html=settings(state.settings);document.getElementById('app').innerHTML=html}
+function overview(g,d){return '<div class="grid">'+
+'<div class="card"><div class="muted">GIVEAWAY</div><h1>'+esc(g.title)+'</h1><p class="muted">'+esc(g.description||'')+'</p><span class="pill '+(g.status==='running'?'good':'')+'">'+esc(g.status)+'</span><div class="stat"><div><div class="num">'+d.participants.length+'</div><div class="label">QATNASHCHI</div></div><div><div class="num">'+g.total_rounds+'</div><div class="label">G‘OLIB</div></div><div><div class="num">'+d.winners.length+'</div><div class="label">ANIQLANGAN</div></div></div><div style="margin-top:15px">'+(!['finished','closed'].includes(String(g.status))?'<button class="btn gold" onclick="giveawayAction(\'start\')">GIVEAWAYNI BOSHLASH</button><button class="btn danger" onclick="giveawayAction(\'close\')">YOPISH</button>':'')+'</div></div>'+
+'<div class="card"><h2>Holat</h2><p class="muted">Boshlanish: '+new Date(g.start_at).toLocaleString('uz-UZ')+'</p><p class="muted">Boshlangan: '+(g.started_at?new Date(g.started_at).toLocaleString('uz-UZ'):'—')+'</p><p class="muted">Tugagan: '+(g.finished_at?new Date(g.finished_at).toLocaleString('uz-UZ'):'—')+'</p><button class="btn" onclick="showTab(\'settings\')">Admin Settings</button></div></div>'}
+function participants(d){const ps=d.participants.map((x,i)=>'<div class="row">'+(i+1)+'. <b>'+esc(x.username?'@'+x.username:x.first_name||'Ishtirokchi')+'</b><div class="time">'+new Date(x.joined_at).toLocaleString('uz-UZ')+'</div></div>').join('')||'<div class="empty">Hali qatnashchi yo‘q.</div>';return '<div class="card"><h2>Qatnashchilar</h2><div class="muted" style="margin-bottom:10px">'+d.participants.length+' ta qatnashchi</div><div class="list">'+ps+'</div></div>'}
+function winners(d){const ws=d.winners.map(x=>'<div class="row"><div class="winner">#'+x.round+' — '+esc(x.winner_label)+'</div><div class="time">'+new Date(x.won_at).toLocaleString('uz-UZ')+'</div></div>').join('')||'<div class="empty">Hali g‘olib yo‘q.</div>';return '<div class="card"><h2>G‘oliblar</h2><div class="muted" style="margin-bottom:10px">'+d.winners.length+' ta aniqlangan</div><div class="list">'+ws+'</div></div>'}
+function sw(k,s){return '<label class="switch"><input type="checkbox" '+(s[k]?'checked':'')+' onchange="setBool(\''+k+'\',this.checked)"><span class="slider"></span></label>'}
+function row(k,s,wide=false){const [name,desc]=labels[k];return '<div class="setting '+(wide?'wide':'')+'"><div class="setting-main"><div class="setting-name">'+name+'</div><div class="setting-desc">'+desc+'</div></div><div class="control">'+sw(k,s)+'</div></div>'}
+function selectRow(key,name,desc,value,values){return '<div class="setting"><div class="setting-main"><div class="setting-name">'+name+'</div><div class="setting-desc">'+desc+'</div></div><div class="control"><select class="select" onchange="setInt(\''+key+'\',this.value)">'+values.map(v=>'<option value="'+v+'" '+(Number(value)===v?'selected':'')+'>'+v+'</option>').join('')+'</select></div></div>'}
+function settings(s){if(!s)return '<div class="card">Settings yuklanmoqda...</div>';return '<div class="card full"><div class="settings-head"><div><h1>Admin Settings</h1><p>RAMZ ESTET boshqaruv tizimining xatti-harakatlarini web interfeys orqali batafsil sozlang.</p></div><span class="pill good">Himoyalangan sessiya</span></div>'+
+'<div class="info">O‘zgarishlar alohida saqlanadi. Telegram bot tokeni, database paroli va boshqa maxfiy kalitlar bu sahifaga yuborilmaydi.</div>'+
+'<div class="section"><div class="section-title"><b>CHAT VA TOZALASH</b><span>Avtomatik xabar boshqaruvi</span></div><div class="settings-grid">'+row('bot_messages_enabled',s)+row('user_messages_enabled',s)+selectRow('bot_messages_delay_minutes','Bot xabarini o‘chirish vaqti','Bot xabarlarining saqlanish muddati.',s.bot_messages_delay_minutes,[0,1,5,15,30,60,360,1440])+selectRow('user_messages_delay_minutes','Admin xabarini o‘chirish vaqti','Admin xabarlarining saqlanish muddati.',s.user_messages_delay_minutes,[0,1,5,15,30,60,360,1440])+row('cleanup_group_messages',s)+'</div></div>'+
+'<div class="section"><div class="section-title"><b>AUTOMATION</b><span>Giveaway jarayonlari</span></div><div class="settings-grid">'+row('auto_start_enabled',s)+row('auto_finish_enabled',s)+row('reminders_enabled',s)+row('reminder_15m',s)+row('reminder_5m',s)+row('reminder_2m',s)+'</div></div>'+
+'<div class="section"><div class="section-title"><b>WINNER</b><span>G‘olib e’loni va hujjati</span></div><div class="settings-grid">'+row('winner_announcement_enabled',s)+row('winner_image_enabled',s)+row('winner_qr_enabled',s)+row('winner_signature_enabled',s)+row('winner_stamp_enabled',s)+'</div></div>'+
+'<div class="section"><div class="section-title"><b>REALTIME VA HIMOYA</b><span>Jonli tizim va xavfsizlik</span></div><div class="settings-grid">'+row('participant_realtime_enabled',s)+row('viewer_realtime_enabled',s)+row('duplicate_protection_enabled',s)+row('audit_logging_enabled',s)+'</div></div>'+
+'<div class="section"><div class="section-title"><b>ADMIN UX</b><span>Panel qulayligi va sessiya</span></div><div class="settings-grid">'+row('panel_single_message',s)+row('search_enabled',s)+row('statistics_enabled',s)+selectRow('admin_session_timeout_minutes','Session timeout','Panel tokenining amal qilish vaqti.',s.admin_session_timeout_minutes,[5,15,30,60,120,360,720,1440])+selectRow('token_expiry_days','Token expiry','Panel xavfsizlik tokenining amal qilish muddati.',s.token_expiry_days,[1,3,7,14,30])+'</div></div>'+
+'<div class="section"><div class="section-title"><b>TEXNIK XIZMAT</b><span>Qo‘lda cleanup</span></div><div class="setting danger-card"><div class="setting-main"><div class="setting-name">Hozir navbatdagi xabarlarni tozalash</div><div class="setting-desc">Cleanup navbatidagi xabarlarni hozir o‘chirishga urinadi. Amal qaytarilmaydi.</div></div><div class="control"><button class="btn danger" onclick="cleanupNow()">Tozalash</button></div></div></div>'+
+'<div class="footer-actions"><span class="save-state">Har bir o‘zgarish darhol serverga saqlanadi.</span><button class="btn" onclick="load()">Settingsni yangilash</button></div></div>'}
+async function setBool(key,value){try{const d=await api('/api/settings',{method:'POST',body:JSON.stringify({[key]:value})});state.settings=d.settings;toast('Saqlanadi: '+(labels[key]?.[0]||key));render()}catch(e){toast(e.message,false);load()}}
+async function setInt(key,value){try{const d=await api('/api/settings',{method:'POST',body:JSON.stringify({[key]:Number(value)})});state.settings=d.settings;toast('Sozlama saqlandi');render()}catch(e){toast(e.message,false);load()}}
+async function cleanupNow(){if(!confirm('Cleanup navbatidagi xabarlarni hozir o‘chirishni tasdiqlaysizmi?'))return;try{const d=await api('/api/settings',{method:'POST',body:JSON.stringify({action:'cleanup_now'})});toast('Tozalandi: '+d.cleanup.deleted+' ta');}catch(e){toast(e.message,false)}}
+async function giveawayAction(a){try{await api('/api/giveaway',{method:'POST',body:JSON.stringify({action:a})});toast('Amal bajarildi');await load()}catch(e){toast(e.message,false)}}
+async function load(){if(!token){document.getElementById('app').innerHTML='<div class="card">Himoyalangan panel havolasi kerak.</div>';return}try{const [g,s]=await Promise.all([api('/api/giveaway'),api('/api/settings')]);state.data=g;state.settings=s.settings;render()}catch(e){document.getElementById('app').innerHTML='<div class="card"><h2>Panelga kirish amalga oshmadi</h2><p class="muted">'+esc(e.message)+'</p></div>'}}
 load();
-</script></div></body></html>
+</script>
+</body>
+</html>
