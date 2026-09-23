@@ -11,6 +11,7 @@ const routes = {
   "telegram-webhook": "./telegram-webhook",
   "giveaways": "./giveaways",
   "giveaway": "./giveaway",
+  "settings": "./settings",
   "state": "./state",
   "watch": "./watch",
   "join": "./join",
