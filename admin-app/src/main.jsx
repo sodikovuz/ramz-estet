@@ -483,10 +483,18 @@ function GroupManager({ groups, onChanged }) {
         <span className="settings-ok">{groups.length} ta guruh</span>
       </div>
       <div className="card group-add-card">
-        <div><h3>Yangi guruh qo‘shish</h3><p>Guruh IDsi (<code>-100...</code>) yoki public <code>@username</code> kiriting. Bot guruhda administrator bo‘lishi kerak.</p></div>
+        <div>
+          <h3>Botni guruhga qo‘shish</h3>
+          <p>Telegram orqali guruhni tanlang. Oddiy havola botni a’zo sifatida qo‘shadi, admin havolasi esa kerakli administrator huquqlarini oldindan belgilaydi.</p>
+        </div>
+        <div className="group-link-actions">
+          <a className="btn primary" href="https://t.me/ramzestetbot?startgroup" target="_blank" rel="noreferrer">👤 A’zo sifatida qo‘shish</a>
+          <a className="btn" href="https://t.me/ramzestetbot?startgroup&admin=post_messages+edit_messages+delete_messages+restrict_members+invite_users+pin_messages+manage_topics+manage_chat" target="_blank" rel="noreferrer">🛡️ Admin sifatida qo‘shish</a>
+        </div>
+        <div className="group-add-divider"><span>yoki ID orqali</span></div>
         <form className="group-add-form" onSubmit={addGroup}>
           <input value={chatId} onChange={e => setChatId(e.target.value)} placeholder="-1001234567890 yoki @guruh" required />
-          <button className="btn primary" disabled={busy}>{busy ? "Tekshirilmoqda..." : "＋ Guruh qo‘shish"}</button>
+          <button className="btn" disabled={busy}>{busy ? "Tekshirilmoqda..." : "＋ Guruhni tekshirish"}</button>
         </form>
         {localError && <div className="alert error"><b>⚠</b>{localError}</div>}
       </div>
