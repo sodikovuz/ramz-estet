@@ -12,6 +12,7 @@ const routes = {
   "giveaways": "./giveaways",
   "giveaway": "./giveaway",
   "settings": "./settings",
+  "groups": "./groups",
   "admin-dashboard": "./admin-dashboard",
   "state": "./state",
   "watch": "./watch",
