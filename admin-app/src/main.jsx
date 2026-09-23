@@ -69,6 +69,8 @@ function App() {
   const [tab, setTab] = useState("dashboard");
   const [data, setData] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroups, setSelectedGroups] = useState([]);
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -79,14 +81,17 @@ function App() {
     if (!token) return;
     setBusy(true); setError("");
     try {
-      const [dashboard, settingData] = await Promise.all([
+      const [dashboard, settingData, groupData] = await Promise.all([
         api("/api/admin-dashboard" + (gid ? "?gid=" + encodeURIComponent(gid) : "")),
         api("/api/settings"),
+        api("/api/groups" + (gid ? "?gid=" + encodeURIComponent(gid) : "")),
       ]);
       setData(dashboard);
       setSettings(settingData.settings || {});
+      setGroups(groupData.chats || []);
       const next = gid || selected || dashboard.giveaways?.[0]?.id;
       if (next) setSelected(next);
+      setSelectedGroups((groupData.selected || []).filter(x => x.role === "post").map(x => Number(x.chat_id)));
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }, [selected]);
@@ -129,6 +134,36 @@ function App() {
     finally { setBusy(false); }
   }
 
+  async function assignGroups(giveawayId, chatIds) {
+    setBusy(true); setError("");
+    try {
+      await api("/api/admin-dashboard", {
+        method: "POST",
+        body: JSON.stringify({ action: "assign_groups", giveaway_id: giveawayId, chat_ids: chatIds }),
+      });
+      setSelectedGroups(chatIds);
+      setNotice("Giveaway guruhlari saqlandi.");
+      await load(giveawayId);
+    } catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  }
+
+  async function postToGroups(giveawayId) {
+    if (!window.confirm("Giveaway tanlangan guruhlarga yuborilsinmi?")) return;
+    setBusy(true); setError("");
+    try {
+      const result = await api("/api/groups", {
+        method: "POST",
+        body: JSON.stringify({ action: "post", giveaway_id: giveawayId }),
+      });
+      const ok = (result.results || []).filter(x => x.ok).length;
+      const failed = (result.results || []).filter(x => !x.ok).length;
+      setNotice("Guruhlarga yuborildi: " + ok + (failed ? " · xato: " + failed : ""));
+      await load(giveawayId);
+    } catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  }
+
   async function updateSetting(key, value) {
     const previous = settings?.[key];
     setSettings(old => ({ ...old, [key]: value }));
@@ -151,7 +186,7 @@ function App() {
       const result = await api("/api/settings", {
         method: "POST", body: JSON.stringify({ action: "cleanup_now" }),
       });
-      setNotice(`Tozalandi: ${result.cleanup?.deleted ?? 0}, xato: ${result.cleanup?.failed ?? 0}`);
+      setNotice("Tozalandi: " + (result.cleanup?.deleted ?? 0) + ", xato: " + (result.cleanup?.failed ?? 0));
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
@@ -162,6 +197,7 @@ function App() {
     ["dashboard", "⌂", "Boshqaruv"],
     ["giveaways", "◉", "Giveawaylar"],
     ["create", "+", "Yangi giveaway"],
+    ["groups", "▦", "Guruhlar"],
     ["settings", "⚙", "Sozlamalar"],
   ];
 
@@ -206,9 +242,14 @@ function App() {
             <Giveaways data={data} items={filtered} search={search} setSearch={setSearch}
               selected={selected} current={current}
               onSelect={(id) => { setSelected(id); load(id); }}
-              onAction={action} />
+              onAction={action}
+              groups={groups}
+              selectedGroups={selectedGroups}
+              onAssignGroups={assignGroups}
+              onPost={postToGroups} />
           )}
-          {tab === "create" && <CreateGiveaway onCreated={async id => { await load(id); setSelected(id); setTab("giveaways"); setNotice("Giveaway muvaffaqiyatli yaratildi."); }} />}
+          {tab === "create" && <CreateGiveaway groups={groups} onCreated={async id => { await load(id); setSelected(id); setTab("giveaways"); setNotice("Giveaway muvaffaqiyatli yaratildi."); }} />}
+          {tab === "groups" && <GroupManager groups={groups} onChanged={() => load(selected)} />}
           {tab === "settings" && <Settings settings={settings} onChange={updateSetting} onCleanup={cleanup} />}
         </main>
       </div>
