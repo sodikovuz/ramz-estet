@@ -12,6 +12,7 @@ const routes = {
   "giveaways": "./giveaways",
   "giveaway": "./giveaway",
   "settings": "./settings",
+  "admin-dashboard": "./admin-dashboard",
   "state": "./state",
   "watch": "./watch",
   "join": "./join",
