@@ -19,3 +19,4 @@ async function setBool(k,v){try{const d=await api('/api/settings',{method:'POST'
 async function setInt(k,v){try{const d=await api('/api/settings',{method:'POST',body:JSON.stringify({[k]:Number(v)})});S.settings=d.settings;toast('Sozlama saqlandi');render()}catch(e){toast(e.message,false)}}
 async function cleanupNow(){if(!confirm('Cleanup navbatidagi xabarlarni hozir tozalashni tasdiqlaysizmi?'))return;try{const d=await api('/api/settings',{method:'POST',body:JSON.stringify({action:'cleanup_now'})});toast('Tozalandi: '+(d.cleanup?.deleted||0)+' ta')}catch(e){toast(e.message,false)}}
 load();
+window.__adminBooted=true;
