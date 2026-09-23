@@ -1,87 +1,32 @@
 <!doctype html>
-<html lang="uz">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RAMZ ESTET — Admin</title>
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>RAMZ ESTET — WebApp Admin</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#070707;color:#fff;font-family:Arial,sans-serif}
-.wrap{width:min(800px,94vw);margin:auto;padding:30px 0}.card{background:#111;border:1px solid #fff1;border-radius:18px;padding:20px;margin:12px 0}
-h1{margin:0 0 5px}.muted{color:#888}label{display:block;color:#aaa;font-size:13px;margin:14px 0 6px}
-textarea,input{width:100%;padding:12px;border-radius:11px;border:1px solid #fff2;background:#080808;color:#fff}
-textarea{min-height:220px}.buttons{display:flex;gap:10px;margin-top:15px}
-button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;cursor:pointer}.start{background:#e22;color:#fff}.reset{background:#222;color:#fff}
-.msg{margin-top:12px;color:#aaa;min-height:22px}
-.note{padding:12px;border-radius:12px;background:#0b0b0b;border:1px solid #fff1;color:#aaa;line-height:1.5}
-@media(max-width:600px){.buttons{flex-direction:column}}
-</style>
-</head>
-<body><script>
-(function(){
-  const nativeError=console.error.bind(console), nativeWarn=console.warn.bind(console);
-  let sending=false;
-  function sendClientLog(payload){
-    if(sending) return;
-    sending=true;
-    try{
-      const body={...payload,level:payload.level||'error',url:location.href,page:location.pathname};
-      const json=JSON.stringify(body);
-      let sent=false;
-      try{ if(navigator.sendBeacon){ sent=navigator.sendBeacon('/api/client-log',new Blob([json],{type:'application/json'})); } }catch(_){}
-      if(!sent){ fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json'},body:json,keepalive:true}).then(r=>r.json()).then(x=>nativeError('[RAMZ LOG RESULT]',x)).catch(e=>nativeError('[RAMZ LOG SEND FAILED]',e)); }
-    }finally{ setTimeout(()=>{sending=false},50); }
-  }
-  window.addEventListener('error',e=>sendClientLog({action:'window.error',message:e.message||'Client error',stack:e.error?.stack||'',line:e.lineno||0,column:e.colno||0}));
-  window.addEventListener('unhandledrejection',e=>sendClientLog({action:'unhandledrejection',message:String(e.reason?.message||e.reason||'Unhandled rejection'),stack:e.reason?.stack||''}));
-  console.error=function(...args){ nativeError(...args); sendClientLog({action:'console.error',message:args.map(x=>{try{return typeof x==='string'?x:JSON.stringify(x)}catch(_){return String(x)}}).join(' ').slice(0,1200),stack:new Error().stack||''}); };
-  console.warn=function(...args){ nativeWarn(...args); sendClientLog({level:'warn',action:'console.warn',message:args.map(x=>String(x)).join(' ').slice(0,1200),stack:new Error().stack||''}); };
-  window.RAMZ_REPORT_ERROR=(error,action='manual.error')=>sendClientLog({action,message:error?.message||String(error||'Unknown error'),stack:error?.stack||''});
-  window.RAMZ_TEST_LOG=()=>{ console.error('RAMZ ESTET TEST ERROR'); };
-})();
-</script>
-<div class="wrap">
-<h1>RAMZ ESTET</h1><div class="muted">5-round realtime random demo</div>
-
-<div class="card">
-<div class="note">G‘olibni admin tanlamaydi. Har bir raundda tanlov server tomonda avtomatik tasodifiy qilinadi.</div>
-<label>Admin secret</label><input id="secret" type="password">
-<label>Participantlar — har qatorda bitta</label>
-<textarea id="participants" placeholder="@user1&#10;@user2&#10;@user3"></textarea>
-<label>G‘oliblar soni</label><input id="total" type="number" min="1" max="5" value="5">
-<label>Spin duration (ms)</label><input id="duration" type="number" min="5000" max="15000" value="8000">
-<div class="buttons">
-<button class="start" id="start">START GIVEAWAY</button>
-<button class="reset" id="reset">RESET</button>
-</div>
-<div id="msg" class="msg"></div>
-</div>
-</div>
+:root{--bg:#07090d;--c:#10151d;--c2:#0b1017;--l:#ffffff12;--t:#f5f7fa;--m:#8d98a8;--g:#d7b45a;--ok:#49d487;--bad:#ff6574}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0,#211b0e,#07090d 40%);color:var(--t);font:14px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{width:min(1280px,94vw);margin:auto;padding:20px 0 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px}.brand{font-size:26px;font-weight:950;letter-spacing:2px}.muted{color:var(--m)}.actions,.buttons{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--l);background:#171d26;color:#fff;border-radius:11px;padding:10px 14px;font-weight:850;cursor:pointer}.btn.gold{background:var(--g);color:#080808;border-color:transparent}.btn.red{background:#2a1116;color:#ffabb3}.btn:disabled{opacity:.5}.tabs{display:flex;gap:6px;overflow:auto;padding:5px;background:#0b0f14;border:1px solid var(--l);border-radius:14px;margin-bottom:15px}.tab{border:0;background:transparent;color:var(--m);padding:10px 14px;border-radius:10px;font-weight:850;white-space:nowrap}.tab.active{background:#1a2029;color:#fff}.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.full{grid-column:1/-1}.card{background:linear-gradient(180deg,#111720,#0d1219);border:1px solid var(--l);border-radius:18px;padding:18px;box-shadow:0 14px 45px #0007}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.stat{background:#090d12;border:1px solid var(--l);border-radius:13px;padding:13px}.num{font-size:25px;font-weight:950}.label{font-size:11px;color:var(--m);margin-top:3px}.list{max-height:600px;overflow:auto}.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--l)}.item:last-child{border:0}.title{font-weight:900}.meta{font-size:12px;color:var(--m);margin-top:4px}.pill{display:inline-flex;padding:5px 9px;border-radius:999px;background:#181e27;border:1px solid var(--l);font-size:11px;font-weight:900}.pill.ok{color:#86e8ae}.pill.bad{color:#ff9da6}.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{display:flex;flex-direction:column;gap:6px}.wide{grid-column:1/-1}.field label{font-weight:850}.input,.textarea,.select{width:100%;background:#090d12;color:#fff;border:1px solid var(--l);border-radius:10px;padding:11px 12px;outline:0}.textarea{min-height:100px;resize:vertical}.info{padding:11px 12px;background:#0b1118;border:1px solid #6ea8ff22;border-radius:12px;color:#adbad0;line-height:1.5;margin:12px 0}.rows{max-height:360px;overflow:auto}.row{padding:9px 0;border-bottom:1px solid var(--l)}.settings{display:grid;grid-template-columns:1fr 1fr;gap:9px}.setting{display:flex;justify-content:space-between;gap:12px;padding:13px;background:var(--c2);border:1px solid var(--l);border-radius:13px}.sn{font-weight:850}.sd{font-size:12px;color:var(--m);line-height:1.4;margin-top:3px}.switch{position:relative;width:45px;height:25px;flex:0 0 auto}.switch input{opacity:0}.slider{position:absolute;inset:0;background:#272d36;border:1px solid #ffffff16;border-radius:30px}.slider:before{content:"";position:absolute;width:19px;height:19px;left:2px;top:2px;background:#a9b0ba;border-radius:50%;transition:.18s}.switch input:checked+.slider{background:#876f2e;border-color:#bda35b}.switch input:checked+.slider:before{transform:translateX(19px);background:#fff}.empty{text-align:center;padding:30px;color:var(--m)}.toast{position:fixed;right:18px;bottom:18px;background:#171d25;border:1px solid var(--l);padding:12px 14px;border-radius:12px;display:none}.toast.show{display:block}.toast.bad{border-color:#ff657455}
+@media(max-width:850px){.grid,.form,.settings{grid-template-columns:1fr}.full,.wide{grid-column:auto}.stats{grid-template-columns:repeat(2,1fr)}.top{align-items:flex-start;flex-direction:column}}@media(max-width:480px){.wrap{width:92vw}.stats{grid-template-columns:1fr 1fr}.item{align-items:flex-start;flex-direction:column}}
+</style></head><body><div class="wrap">
+<div class="top"><div><div class="brand">RAMZ ESTET</div><div class="muted">Umumiy WebApp Admin Panel — barcha boshqaruv bitta joyda</div></div><div class="actions"><button class="btn" onclick="load()">↻ Yangilash</button><button class="btn gold" onclick="tab('create')">＋ Giveaway yaratish</button></div></div>
+<div class="tabs"><button id="t-dashboard" class="tab active" onclick="tab('dashboard')">Dashboard</button><button id="t-giveaways" class="tab" onclick="tab('giveaways')">Barcha giveawaylar</button><button id="t-create" class="tab" onclick="tab('create')">Yaratish</button><button id="t-detail" class="tab" onclick="tab('detail')">Qatnashchilar / G‘oliblar</button><button id="t-settings" class="tab" onclick="tab('settings')">Admin Settings</button></div>
+<div id="app"><div class="card">Yuklanmoqda...</div></div></div><div id="toast" class="toast"></div>
 <script>
-(function(){
- const report=(e,a='window.error')=>{try{const b={level:'error',action:a,message:e?.message||String(e||'Unknown error'),stack:e?.stack||'',url:location.href,page:location.pathname}; const j=JSON.stringify(b); if(navigator.sendBeacon){const blob=new Blob([j],{type:'application/json'}); navigator.sendBeacon('/api/client-log',blob);} fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json'},body:j,keepalive:true}).catch(()=>{});}catch(_){}};
- window.addEventListener('error',e=>report(e.error||new Error(e.message),'window.error'));
- window.addEventListener('unhandledrejection',e=>report(e.reason||new Error('Unhandled rejection'),'unhandledrejection'));
- window.RAMZ_REPORT_ERROR=report;
-})();
-</script>
-<script>
-const $=id=>document.getElementById(id);
-$("start").onclick=async()=>{
- const participants=$("participants").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- const total=Number($("total").value);
- if(!participants.length)return $("msg").textContent="Participant kiriting.";
- if(participants.length<total)return $("msg").textContent="Participantlar soni roundlar sonidan kam bo‘lmasin.";
- $("msg").textContent="Giveaway ishga tushmoqda...";
- try{
-  const r=await fetch("/api/start",{method:"POST",headers:{"Content-Type":"application/json","x-admin-secret":$("secret").value},
-    body:JSON.stringify({participants,totalRounds:total,durationMs:Number($("duration").value)})});
-  const d=await r.json(); if(!r.ok)throw new Error(d.error||"Xatolik");
-  $("msg").textContent=`Giveaway #${d.event.giveawayId} boshlandi. Random tanlov serverda ishlaydi.`;
- }catch(e){$("msg").textContent=e.message}
-};
-$("reset").onclick=async()=>{
- if(!confirm("Reset?"))return;
- const r=await fetch("/api/reset",{method:"POST",headers:{"x-admin-secret":$("secret").value}});
- const d=await r.json();$("msg").textContent=r.ok?"Reset qilindi.":d.error||"Xatolik";
-};
-</script>
-</body></html>
+const token=new URLSearchParams((location.hash||'').replace(/^#/,'')).get('token')||'';const H={'Content-Type':'application/json','x-panel-token':token};let S={tab:'dashboard',data:null,settings:null,selected:0};
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const L={bot_messages_enabled:['Bot xabarlarini tozalash','Bot xabarlarini avtomatik o‘chirish.'],user_messages_enabled:['Admin xabarlarini tozalash','Admin xabarlarini belgilangan vaqtdan keyin o‘chirish.'],duplicate_protection_enabled:['Duplicate protection','Takroriy Telegram update/callbacklarni himoyalash.'],auto_start_enabled:['Avtomatik start','Rejalashtirilgan giveawayni avtomatik ishga tushirish.'],auto_finish_enabled:['Avtomatik finish','Roundlar tugagach yakunlash.'],reminders_enabled:['Reminder tizimi','Giveaway oldidan eslatmalar.'],reminder_15m:['15 daqiqa reminder','15 daqiqa oldin.'],reminder_5m:['5 daqiqa reminder','5 daqiqa oldin.'],reminder_2m:['2 daqiqa reminder','2 daqiqa oldin.'],winner_announcement_enabled:['G‘olib announcement','G‘olib e’lonlarini yuborish.'],winner_image_enabled:['G‘olib image','G‘olib hujjat rasmi.'],winner_qr_enabled:['QR','Winner QR elementi.'],winner_signature_enabled:['Signature','Winner imzo elementi.'],winner_stamp_enabled:['Stamp','Winner muhr elementi.'],participant_realtime_enabled:['Participant realtime','Qatnashchilar realtime.'],viewer_realtime_enabled:['Viewer realtime','Tomoshabinlar realtime.'],audit_logging_enabled:['Audit log','Xatolar va muhim amallar.'],panel_single_message:['Single-message panel','Telegram panelini bitta xabarda boshqarish.'],cleanup_group_messages:['Guruh cleanup','Guruhdagi bot xabarlarini ham cleanup qilish.'],search_enabled:['Qidiruv','Qidiruv flagi.'],statistics_enabled:['Statistika','Statistika flagi.']};
+function toast(x,ok=true){const t=document.getElementById('toast');t.textContent=x;t.className='toast show '+(ok?'':'bad');clearTimeout(window._t);window._t=setTimeout(()=>t.className='toast',2500)}
+async function api(u,o={}){const r=await fetch(u,{...o,headers:{...H,...(o.headers||{})},cache:'no-store'});let d={};try{d=await r.json()}catch(_){}if(!r.ok)throw Error(d.error||'Xatolik');return d}
+function stat(x){return '<span class="pill '+(x==='running'?'ok':x==='closed'?'bad':'')+'">'+esc(x)+'</span>'}
+function tab(x){S.tab=x;document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.getElementById('t-'+x)?.classList.add('active');render()}
+function dashboard(){const s=S.data.stats||{},gs=S.data.giveaways||[];return '<div class="grid"><div class="card full"><div class="muted">UMUMIY HOLAT</div><h1 style="margin:5px 0 15px">Barcha giveawaylar — bitta panel</h1><div class="stats"><div class="stat"><div class="num">'+(s.total||0)+'</div><div class="label">JAMI</div></div><div class="stat"><div class="num">'+(s.scheduled||0)+'</div><div class="label">REJALASHTIRILGAN</div></div><div class="stat"><div class="num">'+(s.running||0)+'</div><div class="label">JARAYONDA</div></div><div class="stat"><div class="num">'+(s.finished||0)+'</div><div class="label">YAKUNLANGAN</div></div><div class="stat"><div class="num">'+(s.closed||0)+'</div><div class="label">YOPILGAN</div></div></div></div><div class="card"><h2>Tezkor amallar</h2><p class="muted">Barcha asosiy ishlarni shu yerdan bajaring.</p><div class="buttons"><button class="btn gold" onclick="tab('create')">＋ Yaratish</button><button class="btn" onclick="tab('giveaways')">Barcha giveawaylar</button><button class="btn" onclick="tab('settings')">Admin Settings</button></div></div><div class="card"><h2>So‘nggi giveawaylar</h2><div class="list">'+(gs.slice(0,7).map(g=>'<div class="item"><div><div class="title">#'+g.id+' · '+esc(g.title)+'</div><div class="meta">'+g.participant_count+' qatnashchi · '+g.winner_count+'/'+g.total_rounds+' g‘olib · '+new Date(g.start_at).toLocaleString('uz-UZ')+'</div></div>'+stat(g.status)+'</div>').join('')||'<div class="empty">Hali giveaway yo‘q.</div>')+'</div></div></div>'}
+function giveaways(){const gs=S.data.giveaways||[];return '<div class="card"><h2>Barcha giveawaylar</h2><p class="muted">'+gs.length+' ta giveaway</p><div class="list">'+(gs.map(g=>'<div class="item"><div><div class="title">#'+g.id+' · '+esc(g.title)+'</div><div class="meta">'+g.participant_count+' qatnashchi · '+g.winner_count+'/'+g.total_rounds+' g‘olib · '+new Date(g.start_at).toLocaleString('uz-UZ')+'</div></div><div class="buttons"><button class="btn" onclick="selectG('+g.id+')">Boshqarish</button>'+(g.status==='scheduled'?'<button class="btn gold" onclick="act('+g.id+',\'start\')">Boshlash</button><button class="btn red" onclick="act('+g.id+',\'close\')">Yopish</button>':'')+'</div></div>').join('')||'<div class="empty">Hali giveaway yo‘q.</div>')+'</div></div>'}
+function create(){return '<div class="card"><h2>Giveaway yaratish</h2><p class="muted">Telegramdagi yaratish jarayonini WebApp ichiga olib keldik.</p><div class="info">Boshlanish vaqti Toshkent vaqti (UTC+5). Poster hozircha Telegram orqali qo‘shiladi.</div><div class="form"><div class="field"><label>Giveaway nomi</label><input id="ct" class="input" maxlength="160" placeholder="RAMZ ESTET #28"></div><div class="field"><label>G‘oliblar soni</label><input id="cr" class="input" type="number" min="1" max="100" value="5"></div><div class="field wide"><label>Tavsif</label><textarea id="cd" class="textarea" maxlength="3000" placeholder="Giveaway haqida..."></textarea></div><div class="field"><label>Boshlanish vaqti</label><input id="cs" class="input" type="datetime-local"></div><div class="buttons wide" style="justify-content:flex-end"><button class="btn" onclick="tab('dashboard')">Bekor qilish</button><button class="btn gold" onclick="createG()">Giveaway yaratish</button></div></div></div>'}
+function detail(){const d=S.data.detail;if(!d)return '<div class="card"><h2>Giveaway tanlang</h2><p class="muted">Barcha giveawaylar bo‘limidan “Boshqarish”ni bosing.</p></div>';const g=d.giveaway;return '<div class="grid"><div class="card"><span class="pill">#'+g.id+'</span><h2 style="margin-top:8px">'+esc(g.title)+'</h2><p class="muted">'+esc(g.description||'')+'</p><p>'+stat(g.status)+' · '+d.participants.length+' qatnashchi · '+d.winners.length+'/'+g.total_rounds+' g‘olib</p><div class="buttons"><button class="btn" onclick="tab(\'giveaways\')">← Orqaga</button>'+(g.status==='scheduled'?'<button class="btn gold" onclick="act('+g.id+',\'start\')">Boshlash</button><button class="btn red" onclick="act('+g.id+',\'close\')">Yopish</button>':'')+'</div></div><div class="card"><h2>Holat va vaqt</h2><p class="muted">Boshlanish: '+new Date(g.start_at).toLocaleString('uz-UZ')+'</p><p class="muted">Boshlangan: '+(g.started_at?new Date(g.started_at).toLocaleString('uz-UZ'):'—')+'</p><p class="muted">Tugagan: '+(g.finished_at?new Date(g.finished_at).toLocaleString('uz-UZ'):'—')+'</p></div><div class="card"><h2>Qatnashchilar · '+d.participants.length+'</h2><div class="rows">'+(d.participants.map((p,i)=>'<div class="row">'+(i+1)+'. <b>'+esc(p.username?'@'+p.username:p.first_name||p.user_id)+'</b><div class="meta">'+new Date(p.joined_at).toLocaleString('uz-UZ')+'</div></div>').join('')||'<div class="empty">Hali qatnashchi yo‘q.</div>')+'</div></div><div class="card"><h2>G‘oliblar · '+d.winners.length+'</h2><div class="rows">'+(d.winners.map(w=>'<div class="row"><b>#'+w.round+' · '+esc(w.winner_label)+'</b><div class="meta">'+new Date(w.won_at).toLocaleString('uz-UZ')+'</div></div>').join('')||'<div class="empty">Hali g‘olib yo‘q.</div>')+'</div></div></div>'}
+function settings(){const s=S.settings;if(!s)return '<div class="card">Yuklanmoqda...</div>';return '<div class="card"><h2>Admin Settings</h2><p class="muted">Bot, cleanup, reminder, winner, realtime va himoya sozlamalarini bitta joydan boshqaring.</p><div class="settings">'+Object.keys(L).map(k=>'<div class="setting"><div><div class="sn">'+L[k][0]+'</div><div class="sd">'+L[k][1]+'</div></div><label class="switch"><input type="checkbox" '+(s[k]?'checked':'')+' onchange="setBool(\''+k+'\',this.checked)"><span class="slider"></span></label></div>').join('')+'</div><div class="info">Session timeout: '+s.admin_session_timeout_minutes+' daqiqa · Token expiry: '+s.token_expiry_days+' kun · Bot cleanup: '+(s.bot_messages_enabled?'ON':'OFF')+'</div></div>'}
+function render(){if(!S.data)return;document.getElementById('app').innerHTML=S.tab==='dashboard'?dashboard():S.tab==='giveaways'?giveaways():S.tab==='create'?create():S.tab==='detail'?detail():settings()}
+async function load(gid=S.selected){if(!token){document.getElementById('app').innerHTML='<div class="card">Himoyalangan panel havolasi kerak.</div>';return}try{const q=gid?'?gid='+gid:'';const [d,s]=await Promise.all([api('/api/admin-dashboard'+q),api('/api/settings')]);S.data=d;S.settings=s.settings;render()}catch(e){document.getElementById('app').innerHTML='<div class="card"><h2>Kirish xatosi</h2><p class="muted">'+esc(e.message)+'</p></div>'}}
+async function selectG(id){S.selected=id;await load(id);tab('detail')}
+async function act(id,action){if(!confirm(action==='start'?'Giveawayni boshlaysizmi?':'Giveawayni yopasizmi?'))return;try{await api('/api/admin-dashboard',{method:'POST',body:JSON.stringify({action,giveaway_id:id})});toast('Amal bajarildi');await load(id);S.tab='detail';render()}catch(e){toast(e.message,false)}}
+async function createG(){try{const d=await api('/api/admin-dashboard',{method:'POST',body:JSON.stringify({action:'create',title:ct.value,description:cd.value,total_rounds:cr.value,start_at:cs.value})});toast('Giveaway yaratildi');S.selected=d.id;await load(d.id);S.tab='detail';render()}catch(e){toast(e.message,false)}}
+async function setBool(k,v){try{const d=await api('/api/settings',{method:'POST',body:JSON.stringify({[k]:v})});S.settings=d.settings;toast('Sozlama saqlandi');render()}catch(e){toast(e.message,false)}}
+load();
+</script></body></html>
