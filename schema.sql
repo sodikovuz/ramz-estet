@@ -117,3 +117,35 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 CREATE INDEX IF NOT EXISTS audit_logs_created_idx ON audit_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS audit_logs_level_idx ON audit_logs(level,created_at DESC);
+
+
+-- Telegram group management.
+CREATE TABLE IF NOT EXISTS telegram_chats (
+  chat_id BIGINT PRIMARY KEY,
+  title TEXT NOT NULL,
+  username TEXT,
+  type TEXT NOT NULL,
+  bot_status TEXT,
+  can_post_messages BOOLEAN DEFAULT FALSE,
+  can_delete_messages BOOLEAN DEFAULT FALSE,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS giveaway_chats (
+  giveaway_id BIGINT NOT NULL,
+  chat_id BIGINT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'post' CHECK (role IN ('post','winner','reminder')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (giveaway_id,chat_id,role)
+);
+CREATE TABLE IF NOT EXISTS giveaway_chat_posts (
+  id BIGSERIAL PRIMARY KEY,
+  giveaway_id BIGINT NOT NULL,
+  chat_id BIGINT NOT NULL,
+  message_id BIGINT,
+  posted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(giveaway_id,chat_id)
+);
+CREATE INDEX IF NOT EXISTS giveaway_chats_giveaway_idx ON giveaway_chats(giveaway_id);
+CREATE INDEX IF NOT EXISTS giveaway_chats_chat_idx ON giveaway_chats(chat_id);
