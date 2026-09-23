@@ -9,13 +9,6 @@
 <div class="top"><div><div class="brand">RAMZ ESTET</div><div class="muted">Umumiy WebApp Admin Panel — barcha boshqaruv bitta joyda</div></div><div class="actions"><button class="btn" onclick="load()">↻ Yangilash</button><button class="btn gold" onclick="tab('create')">＋ Giveaway yaratish</button></div></div>
 <div class="tabs"><button id="t-dashboard" class="tab active" onclick="tab('dashboard')">Dashboard</button><button id="t-giveaways" class="tab" onclick="tab('giveaways')">Barcha giveawaylar</button><button id="t-create" class="tab" onclick="tab('create')">Yaratish</button><button id="t-detail" class="tab" onclick="tab('detail')">Qatnashchilar / G‘oliblar</button><button id="t-settings" class="tab" onclick="tab('settings')">Admin Settings</button></div>
 <div id="app"><div class="card">Yuklanmoqda...</div></div></div><div id="toast" class="toast"></div>
-<script>
-window.__adminBooted=false;
-window.__adminAssetVersion='__ASSET_VERSION__';
-window.addEventListener('error',function(e){
-  try{fetch('/api/client-log',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,body:JSON.stringify({action:'admin.bootstrap.error',level:'critical',message:e.message||'Admin JavaScript error',errorName:(e.error&&e.error.name)||'ScriptError',stack:(e.error&&e.error.stack)||'',page:location.pathname,url:location.href.split('#')[0],line:e.lineno||null,column:e.colno||null,viewport:innerWidth+'x'+innerHeight,online:navigator.onLine,telegramVersion:(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.version)||''})})}catch(_){}
-  var app=document.getElementById('app');if(app&&!window.__adminBooted){app.innerHTML='<div class="card"><h2>Admin panel xatosi</h2><p class="muted">JavaScript ishga tushmadi. Xato avtomatik logga yuborildi.</p></div>'}
-});
-window.setTimeout(function(){if(!window.__adminBooted){var app=document.getElementById('app');if(app&&app.textContent.includes('Yuklanmoqda'))app.innerHTML='<div class="card"><h2>Admin panel ishga tushmadi</h2><p class="muted">JavaScript yuklanishi kutilganidan uzoq davom etdi. Xato logga yuborildi.</p></div>'}},5000);
-</script>
+<script src="/admin-bootstrap.js?v=__ASSET_VERSION__" defer></script>
+<script src="/admin.js?v=__ASSET_VERSION__" defer></script>
 <script src="/admin.js?v=__ASSET_VERSION__" defer></script></body></html>
