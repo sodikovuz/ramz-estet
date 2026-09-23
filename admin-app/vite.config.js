@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 
 export default defineConfig({
+  root: resolve(process.cwd(), "admin-app"),
   plugins: [react()],
   base: "/admin/",
   build: {
