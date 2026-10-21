@@ -40,6 +40,7 @@ export function validateServerlessExport(input) {
     if (!Array.isArray(children) || !Array.isArray(parents)) continue;
     const parentIds = new Set(parents.map((row) => String(row && row.id)));
     children.forEach((row, index) => {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return;
       if (row[childField] === undefined || row[childField] === null) errors.push(childName + '[' + index + '] missing relation field ' + childField);
       else if (!parentIds.has(String(row[childField]))) errors.push(childName + '[' + index + '] references absent giveaways.id=' + row[childField]);
     });
