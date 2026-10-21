@@ -6,7 +6,11 @@ This change adds reusable primitives only; it does **not** claim the bot has bee
 
 - `tgcloud/lib/update.js`: pure update classification, actor/chat extraction and string-safe Telegram ID comparison. It has no platform SDK dependency.
 - `tgcloud/lib/telegram.js`: Serverless SDK wrapper for Telegram methods, HTML escaping, inline-keyboard construction and safe callback-query acknowledgements.
-- `tests/serverless-update.test.js`: Node tests for the pure update helpers.
+- `tgcloud/lib/startapp-tokens.js`: server-side lookup of opaque, hashed startapp capabilities with expiry checks.
+- `tgcloud/endpoints/publicGiveaway.js`: read-only public giveaway data and winner history.
+- `tgcloud/endpoints/joinGiveaway.js`: idempotent participant registration with Telegram Mini App identity supplied by the platform.
+- `tgcloud/lib/validate-export.js`: read-only export preflight for required tables, duplicate keys and missing giveaway references.
+- `tests/serverless-update.test.js`, `tests/telegram-auth.test.js`, `tests/serverless-export.test.js`: pure helper and export-validation tests.
 
 ## Integration rules
 
