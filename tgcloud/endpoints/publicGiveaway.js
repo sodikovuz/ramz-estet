@@ -1,4 +1,4 @@
-import { db } from 'sdk';
+import { db, EndpointError } from 'sdk';
 import { eq, asc } from 'sdk/db';
 import { giveaways, participants, winners } from '../schema.js';
 import { readStartAppToken } from '../lib/startapp-tokens.js';
@@ -14,10 +14,10 @@ function iso(value) {
 export default async function publicGiveaway(input = {}, ctx) {
   const token = String(input.startApp || ctx?.initData?.startParam || '');
   const access = await readStartAppToken(token, 'watch') || await readStartAppToken(token, 'join');
-  if (!access) return { ok: false, status: 403, error: 'Havola yaroqsiz yoki muddati tugagan' };
+  if (!access) throw new EndpointError('Havola yaroqsiz yoki muddati tugagan', { code: 'INVALID_GIVEAWAY_TOKEN' });
 
   const giveaway = await db.select().from(giveaways).where(eq(giveaways.id, access.giveawayId)).get();
-  if (!giveaway) return { ok: false, status: 404, error: 'Giveaway topilmadi' };
+  if (!giveaway) throw new EndpointError('Giveaway topilmadi', { code: 'GIVEAWAY_NOT_FOUND' });
   const participantRows = await db.select().from(participants)
     .where(eq(participants.giveawayId, access.giveawayId))
     .orderBy(asc(participants.joinedAt)).all();
