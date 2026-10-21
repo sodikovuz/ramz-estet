@@ -11,17 +11,20 @@ on:
       - 'tests/serverless-export.test.js'
       - 'tests/inline-result.test.js'
       - 'tests/serverless-admin-auth.test.js'
+      - 'docs/TELEGRAM_SERVERLESS_*.md'
       - '.github/workflows/serverless-helper-tests.yml'
   push:
     branches: [main]
     paths:
       - 'tgcloud/lib/**'
+      - 'tgcloud/endpoints/**'
       - 'tgcloud/handlers/**'
       - 'tests/telegram-auth.test.js'
       - 'tests/serverless-update.test.js'
       - 'tests/serverless-export.test.js'
       - 'tests/inline-result.test.js'
       - 'tests/serverless-admin-auth.test.js'
+      - 'docs/TELEGRAM_SERVERLESS_*.md'
       - '.github/workflows/serverless-helper-tests.yml'
 
 jobs:
