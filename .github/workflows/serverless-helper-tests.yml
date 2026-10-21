@@ -6,6 +6,7 @@ on:
       - 'tgcloud/lib/**'
       - 'tests/telegram-auth.test.js'
       - 'tests/serverless-update.test.js'
+      - 'tests/serverless-export.test.js'
       - '.github/workflows/serverless-helper-tests.yml'
   push:
     branches: [main]
@@ -24,4 +25,4 @@ jobs:
         with:
           node-version: 24
       - name: Run pure Serverless helper tests
-        run: node --test tests/serverless-update.test.js tests/telegram-auth.test.js
+        run: node --test tests/serverless-update.test.js tests/telegram-auth.test.js tests/serverless-export.test.js
