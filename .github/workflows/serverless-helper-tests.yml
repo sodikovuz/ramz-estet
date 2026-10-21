@@ -21,6 +21,7 @@ on:
       - 'tests/serverless-update.test.js'
       - 'tests/serverless-export.test.js'
       - 'tests/inline-result.test.js'
+      - 'tests/serverless-admin-auth.test.js'
       - '.github/workflows/serverless-helper-tests.yml'
 
 jobs:
