@@ -13,7 +13,7 @@ export const giveaways = table('giveaways', {
   createdBy: integer('created_by'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   startedAt: integer('started_at', { mode: 'timestamp' }), finishedAt: integer('finished_at', { mode: 'timestamp' }),
-  postedChatId: integer('posted_chat_id'), postedMessageId: integer('posted_message_id),
+  postedChatId: integer('posted_chat_id'), postedMessageId: integer('posted_message_id'),
   inlineMessageId: text('inline_message_id'), viewerUrl: text('viewer_url'),
   panelToken: text('panel_token'), durationMs: integer('duration_ms').default(8000),
 }, (t) => ({ statusStartIdx: index('giveaways_status_start_idx').on(t.status, t.startAt), createdByIdx: index('giveaways_created_by_idx').on(t.createdBy) }));
