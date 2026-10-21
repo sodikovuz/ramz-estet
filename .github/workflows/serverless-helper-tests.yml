@@ -8,6 +8,7 @@ on:
       - 'tests/telegram-auth.test.js'
       - 'tests/serverless-update.test.js'
       - 'tests/serverless-export.test.js'
+      - 'tests/inline-result.test.js'
       - '.github/workflows/serverless-helper-tests.yml'
   push:
     branches: [main]
@@ -29,4 +30,4 @@ jobs:
       - name: Syntax-check every Serverless module
         run: find tgcloud -name '*.js' -print0 | xargs -0 -n1 sh -c 'node --input-type=module --check < "$1"' sh
       - name: Run pure Serverless helper tests
-        run: node --test tests/serverless-update.test.js tests/telegram-auth.test.js tests/serverless-export.test.js
+        run: node --test tests/serverless-update.test.js tests/telegram-auth.test.js tests/serverless-export.test.js tests/inline-result.test.js
