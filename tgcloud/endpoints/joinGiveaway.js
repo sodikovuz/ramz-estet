@@ -33,5 +33,7 @@ export default async function joinGiveaway(input = {}, ctx) {
   return {
     ok: true, giveawayId: giveaway.id, joined: true,
     participantCount: rows.length, participantNames,
+    giveawayTitle: String(giveaway.title || ''),
+    message: '🎉 Siz “' + String(giveaway.title || 'Giveaway') + '” giveawayiga qo‘shildingiz — ismingiz barabanda!',
   };
 }
