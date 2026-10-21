@@ -1,0 +1,27 @@
+name: Serverless helper tests
+
+on:
+  pull_request:
+    paths:
+      - 'tgcloud/lib/**'
+      - 'tests/telegram-auth.test.js'
+      - 'tests/serverless-update.test.js'
+      - '.github/workflows/serverless-helper-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tgcloud/lib/**'
+      - 'tests/telegram-auth.test.js'
+      - 'tests/serverless-update.test.js'
+      - '.github/workflows/serverless-helper-tests.yml'
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run pure Serverless helper tests
+        run: node --test tests/serverless-update.test.js tests/telegram-auth.test.js
