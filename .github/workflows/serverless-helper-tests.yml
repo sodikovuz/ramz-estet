@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'tgcloud/lib/**'
+      - 'tgcloud/endpoints/**'
       - 'tests/telegram-auth.test.js'
       - 'tests/serverless-update.test.js'
       - 'tests/serverless-export.test.js'
