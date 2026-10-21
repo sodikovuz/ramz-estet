@@ -1,0 +1,41 @@
+name: Serverless helper tests
+
+on:
+  pull_request:
+    paths:
+      - 'tgcloud/lib/**'
+      - 'tgcloud/endpoints/**'
+      - 'tgcloud/handlers/**'
+      - 'tests/telegram-auth.test.js'
+      - 'tests/serverless-update.test.js'
+      - 'tests/serverless-export.test.js'
+      - 'tests/inline-result.test.js'
+      - 'tests/serverless-admin-auth.test.js'
+      - 'docs/TELEGRAM_SERVERLESS_*.md'
+      - '.github/workflows/serverless-helper-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tgcloud/lib/**'
+      - 'tgcloud/endpoints/**'
+      - 'tgcloud/handlers/**'
+      - 'tests/telegram-auth.test.js'
+      - 'tests/serverless-update.test.js'
+      - 'tests/serverless-export.test.js'
+      - 'tests/inline-result.test.js'
+      - 'tests/serverless-admin-auth.test.js'
+      - 'docs/TELEGRAM_SERVERLESS_*.md'
+      - '.github/workflows/serverless-helper-tests.yml'
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Syntax-check every Serverless module
+        run: find tgcloud -name '*.js' -print0 | xargs -0 -n1 sh -c 'node --input-type=module --check < "$1"' sh
+      - name: Run pure Serverless helper tests
+        run: node --test tests/serverless-update.test.js tests/telegram-auth.test.js tests/serverless-export.test.js tests/inline-result.test.js tests/serverless-admin-auth.test.js
