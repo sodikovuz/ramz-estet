@@ -6,10 +6,10 @@ import { processedUpdates } from '../schema.js';
 export async function claimTelegramUpdate(updateId) {
   const id = Number(updateId);
   if (!Number.isSafeInteger(id) || id < 0) throw new TypeError('A safe non-negative Telegram update_id is required');
-  const inserted = await db.insert(processedUpdates)
+  const result = await db.insert(processedUpdates)
     .values({ updateId: id })
     .onConflictDoNothing({ target: processedUpdates.updateId })
     .returning({ updateId: processedUpdates.updateId })
     .run();
-  return inserted.length === 1;
+  return result?.rowsAffected === 1 || (Array.isArray(result?.rows) && result.rows.length === 1);
 }
