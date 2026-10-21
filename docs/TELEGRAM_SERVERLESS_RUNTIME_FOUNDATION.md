@@ -23,3 +23,15 @@ This change adds reusable primitives only; it does **not** claim the bot has bee
 ## Remaining migration work
 
 The existing Vercel implementation still contains the authoritative bot state machine and API behavior. Each message/callback branch and each API route must be ported and acceptance-tested, including database writes, authorization, inline mode, group membership, reminders, cleanup, realtime events, and winner-image generation. Database export/import and webhook cutover remain separate, explicitly authorized operations. Production has not been changed by this foundation commit.
+
+## Endpoint parity progress
+
+The following isolated endpoint ports now exist in `tgcloud/endpoints/`:
+
+- `publicGiveaway.js`: token-gated giveaway summary, participants, and winner history.
+- `currentGiveaway.js`: token-gated current state, participant list, and active-viewer count.
+- `joinGiveaway.js`: authenticated, idempotent participant registration.
+- `watchGiveaway.js`: viewer presence update and state response.
+- `winnerStatus.js`: checks whether the authenticated Telegram user won a specified round.
+
+These endpoints use the platform-verified `ctx.initData` identity and hashed startapp token records. They are not yet wired into the existing frontend, and endpoint behavior has not yet been validated with `npx tgcloud run` against a linked staging bot. They do not yet replace the legacy REST API, Ably event publication, group post edits, admin authorization, reminders, winner settlement/announcement, or image rendering. Do not switch the live Mini App to these partial endpoints yet.
