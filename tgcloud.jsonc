@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/@tgcloud/cli/schema/tgcloud.json",
+  "static": {
+    // Build the Telegram Mini App with: npm run build:tgcloud
+    // This is deliberately separate from the existing Vercel /admin build.
+    "source": "dist",
+    "spa": true,
+    "immutable": ["/assets/*"]
+  }
+}
