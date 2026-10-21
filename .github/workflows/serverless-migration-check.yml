@@ -1,0 +1,42 @@
+name: Telegram Serverless migration checks
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tgcloud/**"
+      - "admin-app/**"
+      - "package.json"
+      - ".github/workflows/serverless-migration-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-build:
+    name: Build existing admin frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Build admin frontend
+        run: npm run build
+
+  migration-safety:
+    name: Ensure migration is not marked production-ready prematurely
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check migration scaffold and safety notes
+        shell: bash
+        run: |
+          test -s tgcloud/schema.js
+          test -s docs/TELEGRAM_SERVERLESS_MIGRATION.md
+          grep -q "not a production cutover" docs/TELEGRAM_SERVERLESS_MIGRATION.md
+          echo "Scaffold exists. This workflow deliberately does not deploy or migrate production data."
