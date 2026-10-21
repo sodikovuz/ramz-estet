@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { validateServerlessExport } from '../tgcloud/lib/validate-export.js';
+const names = ['giveaways','telegram_giveaway_participants','giveaway_viewers','giveaway_winners','giveaway_state','admin_sessions','giveaway_notify_log','startapp_tokens','audit_logs','telegram_chats','giveaway_chats','giveaway_chat_posts','giveaway_inline_posts','bot_settings','bot_message_cleanup','telegram_processed_updates','bot_ui_state'];
+const emptyTables = () => Object.fromEntries(names.map((name) => [name, []]));
+test('accepts complete empty export and reports counts', () => { const r = validateServerlessExport({ formatVersion: 1, tables: emptyTables() }); assert.equal(r.ok, true); assert.equal(r.counts.giveaways, 0); });
+test('rejects missing table and duplicate composite key', () => { const t = emptyTables(); delete t.bot_settings; t.giveaways = [{id:1},{id:1}]; const r = validateServerlessExport({formatVersion:1,tables:t}); assert.equal(r.ok,false); assert.ok(r.errors.some((e)=>e.includes('Missing table array: bot_settings'))); assert.ok(r.errors.some((e)=>e.includes('duplicate primary key'))); });
+test('rejects orphaned giveaway references', () => { const t = emptyTables(); t.telegram_giveaway_participants = [{giveaway_id:404,user_id:9}]; const r = validateServerlessExport({formatVersion:1,tables:t}); assert.equal(r.ok,false); assert.ok(r.errors.some((e)=>e.includes('references absent giveaways.id=404'))); });
+test('rejects malformed rows and unsupported versions', () => { const t = emptyTables(); t.giveaways = [null]; const r = validateServerlessExport({formatVersion:2,tables:t}); assert.equal(r.ok,false); assert.ok(r.errors.some((e)=>e.includes('formatVersion must be 1'))); assert.ok(r.errors.some((e)=>e.includes('must be a row object'))); });
