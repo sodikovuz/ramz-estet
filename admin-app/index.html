@@ -6,7 +6,36 @@
     <meta name="robots" content="noindex,nofollow,noarchive" />
     <meta name="referrer" content="no-referrer" />
     <title>RAMZ ESTET · Admin</title>
-  </head>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+window._originalFetch = window.fetch;
+window.fetch = async (url, options) => {
+  if (typeof url === 'string' && url.startsWith('/api/')) {
+    if (window.Telegram?.WebApp?.Serverless) {
+      const method = url.replace('/api/', '');
+      return new Promise((resolve) => {
+        try {
+          const bodyObj = (options && options.body) ? JSON.parse(options.body) : {};
+          const payload = { ...bodyObj };
+
+          Telegram.WebApp.Serverless.call(method, payload, (err, data) => {
+            if (err) {
+              resolve({ ok: false, status: 500, json: async () => ({ error: err.message || String(err) }) });
+            } else {
+              resolve({ ok: true, status: 200, json: async () => data });
+            }
+          });
+        } catch (e) {
+          resolve({ ok: false, status: 500, json: async () => ({ error: e.message }) });
+        }
+      });
+    }
+  }
+  return window._originalFetch(url, options);
+};
+</script>
+</head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
