@@ -1,0 +1,7 @@
+{
+  "project": "ramz-estet-giveaway",
+  "static": "dist",
+  "endpoints": "tgcloud/endpoints",
+  "handlers": "tgcloud/handlers",
+  "schema": "tgcloud/schema.js"
+}
